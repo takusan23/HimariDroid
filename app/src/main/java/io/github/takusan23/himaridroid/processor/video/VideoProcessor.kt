@@ -4,6 +4,7 @@ import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import io.github.takusan23.himaridroid.data.EncoderParams
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -18,29 +19,21 @@ object VideoProcessor {
     suspend fun start(
         mediaExtractor: MediaExtractor,
         inputMediaFormat: MediaFormat,
-        codec: String,
-        bitRate: Int,
-        keyframeInterval: Int,
-        onOutputFormat: (MediaFormat) -> Unit,
-        onOutputData: (ByteBuffer, MediaCodec.BufferInfo) -> Unit
+        encoderParams: EncoderParams,
+        onOutputFormat: suspend (MediaFormat) -> Unit,
+        onOutputData: suspend (ByteBuffer, MediaCodec.BufferInfo) -> Unit
     ) = withContext(Dispatchers.Default) {
 
-        // 解析結果から各パラメータを取り出す
-        // 動画の幅、高さは16の倍数である必要があります
-        val width = inputMediaFormat.getInteger(MediaFormat.KEY_WIDTH)
-        val height = inputMediaFormat.getInteger(MediaFormat.KEY_HEIGHT)
-        val frameRate = runCatching { inputMediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE) }.getOrNull() ?: 30
-
         // エンコーダーにセットするMediaFormat
-        val videoMediaFormat = MediaFormat.createVideoFormat(codec, width, height).apply {
-            setInteger(MediaFormat.KEY_BIT_RATE, bitRate)
-            setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
-            setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, keyframeInterval)
+        val videoMediaFormat = MediaFormat.createVideoFormat(encoderParams.codecContainerType.codecName, encoderParams.videoWidth, encoderParams.videoHeight).apply {
+            setInteger(MediaFormat.KEY_BIT_RATE, encoderParams.bitRate)
+            setInteger(MediaFormat.KEY_FRAME_RATE, encoderParams.frameRate)
+            setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1)
             setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
         }
 
         // エンコード用 MediaCodec
-        val encodeMediaCodec = MediaCodec.createEncoderByType(codec).apply {
+        val encodeMediaCodec = MediaCodec.createEncoderByType(encoderParams.codecContainerType.codecName).apply {
             configure(videoMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         }
 

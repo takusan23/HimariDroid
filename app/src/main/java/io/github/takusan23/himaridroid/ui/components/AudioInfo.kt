@@ -1,12 +1,9 @@
 package io.github.takusan23.himaridroid.ui.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,12 +15,7 @@ fun AudioInfo(
     modifier: Modifier = Modifier,
     isReEncode: Boolean
 ) {
-
-    Surface(
-        modifier = modifier,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-        shape = RoundedCornerShape(20.dp)
-    ) {
+    OutlinedCard(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -37,5 +29,4 @@ fun AudioInfo(
             }
         }
     }
-
 }

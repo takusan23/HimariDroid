@@ -8,6 +8,7 @@ import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.takusan23.himaridroid.EncoderService
 import io.github.takusan23.himaridroid.data.EncoderParams
 import io.github.takusan23.himaridroid.data.VideoFormat
 import io.github.takusan23.himaridroid.processor.MediaTool
@@ -56,6 +57,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
     fun setInitialEncoderParams() {
         val videoFormat = inputVideoFormat.value ?: return
         _encoderParams.value = EncoderParams(
+            fileNameWithoutExtension = "HimariDroid_${System.currentTimeMillis()}",
             videoWidth = videoFormat.videoWidth,
             videoHeight = videoFormat.videoHeight,
             bitRate = videoFormat.bitRate,
@@ -67,6 +69,13 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
     /** Snackbar を消す */
     fun dismissSnackbar() {
         _snackbarMessage.value = null
+    }
+
+    /** エンコーダーを開始する */
+    fun startEncoder(service: EncoderService) {
+        val inputUri = inputUri ?: return
+        val encoderParams = encoderParams.value ?: return
+        service.startEncode(inputUri, encoderParams)
     }
 
     /** 解析できない場合は null */

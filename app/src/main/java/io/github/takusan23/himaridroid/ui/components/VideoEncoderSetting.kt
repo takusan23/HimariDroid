@@ -50,6 +50,15 @@ fun VideoEncoderSetting(
                 fontSize = 20.sp
             )
 
+            // ファイル名
+            SuffixStringTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = encoderParams.fileNameWithoutExtension,
+                onValueChange = { name -> update { it.copy(fileNameWithoutExtension = name) } },
+                label = "ファイル名",
+                suffix = ".${encoderParams.codecContainerType.containerType.extension}"
+            )
+
             // コーデック選択ボトムシート
             CodecSelectSheet(
                 modifier = Modifier.fillMaxWidth(),
@@ -103,6 +112,31 @@ fun VideoEncoderSetting(
 
         }
     }
+}
+
+/** Suffix 付き文字列 TextField */
+@Composable
+fun SuffixStringTextField(
+    modifier: Modifier = Modifier,
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    suffix: String? = null,
+) {
+    OutlinedTextField(
+        modifier = modifier,
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(text = label) },
+        suffix = if (suffix != null) {
+            {
+                Text(
+                    text = suffix,
+                    color = LocalContentColor.current.copy(alpha = 0.5f)
+                )
+            }
+        } else null
+    )
 }
 
 /** 数字の TextField */

@@ -59,7 +59,10 @@ fun VideoSelect(
                     onClick = { videoPicker.launch(PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.VideoOnly)) }
                 )
             } else {
-                Text(text = "変換したい動画を選んでください", fontSize = 18.sp)
+                Text(
+                    text = "変換したい動画を選んでください",
+                    fontSize = 18.sp
+                )
                 Button(
                     modifier = Modifier.align(alignment = Alignment.End),
                     onClick = { videoPicker.launch(PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.VideoOnly)) }

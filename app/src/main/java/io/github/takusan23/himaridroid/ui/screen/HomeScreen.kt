@@ -1,6 +1,8 @@
 package io.github.takusan23.himaridroid.ui.screen
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,11 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.takusan23.himaridroid.EncoderService
 import io.github.takusan23.himaridroid.data.EncoderParams
+import io.github.takusan23.himaridroid.data.VideoFormat
 import io.github.takusan23.himaridroid.ui.components.AudioInfo
+import io.github.takusan23.himaridroid.ui.components.EncodingProgress
 import io.github.takusan23.himaridroid.ui.components.HomeScreenBottomBar
 import io.github.takusan23.himaridroid.ui.components.VideoEncoderSetting
 import io.github.takusan23.himaridroid.ui.components.VideoSelect
 import io.github.takusan23.himaridroid.ui.screen.viewmodel.HomeScreenViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +48,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
 
     // エンコーダーサービスとバインドする
     val encoderService = EncoderService.bindService(context, lifecycleOwner.lifecycle).collectAsState(initial = null)
+    val isEncoding = encoderService.value?.isEncoding?.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.snackbarMessage.collect { message ->
@@ -55,30 +61,77 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
         }
     }
 
-    fun start() {
-//        val uri = videoUri.value ?: return
-//        scope.launch {
-//            // 始める
-//            statusText.value = "処理中です"
-//            // せっかくなので時間を測ってみる
-//            val totalTime = measureTimeMillis {
-//                ReEncodeTool.start(
-//                    context = context,
-//                    inputUri = uri,
-//                    videoBitrate = bitrate.value.toIntOrNull() ?: 1_000_000,
-//                    codecName = MediaFormat.MIMETYPE_VIDEO_AV1
-//                )
-//            }
-//            statusText.value = "終わりました。時間 = ${totalTime / 1000} 秒"
-//        }
+    if (isEncoding?.value == true) {
+        // エンコード中
+        EncodingScreen(
+            onStopClick = {
+                scope.launch { encoderService.value?.stop() }
+            }
+        )
+    } else {
+        // エンコードしてない
+        EncoderScreen(
+            snackbarHostState = snackbarState,
+            encoderParams = encoderParams.value,
+            inputVideoFormat = inputVideoFormat.value,
+            onInputVideoUri = { uri -> viewModel.setInputVideoUri(uri) },
+            onResetInitialEncoderParams = { viewModel.setInitialEncoderParams() },
+            onUpdateEncoderParams = { params -> viewModel.updateEncoderParams(params) },
+            onEncodeClick = {
+                // エンコーダー開始
+                encoderService.value?.also { encoderService ->
+                    viewModel.startEncoder(encoderService)
+                }
+            }
+        )
     }
+}
 
+/** エンコード中画面 */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EncodingScreen(
+    onStopClick: () -> Unit
+) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(text = "ひまりどろいど") }) },
-        snackbarHost = { SnackbarHost(snackbarState) },
+    ) { paddingValues ->
+        Column() {
+            LazyColumn(
+                modifier = Modifier.padding(paddingValues),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                item {
+                    EncodingProgress(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .fillMaxWidth(),
+                        onStopClick = onStopClick
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** 編集画面 */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EncoderScreen(
+    snackbarHostState: SnackbarHostState,
+    encoderParams: EncoderParams?,
+    inputVideoFormat: VideoFormat?,
+    onInputVideoUri: (Uri) -> Unit,
+    onResetInitialEncoderParams: () -> Unit,
+    onUpdateEncoderParams: (EncoderParams) -> Unit,
+    onEncodeClick: () -> Unit
+) {
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(text = "ひまりどろいど") }) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            if (encoderParams.value != null && inputVideoFormat.value != null) {
-                HomeScreenBottomBar(onClick = { })
+            if (encoderParams != null && inputVideoFormat != null) {
+                HomeScreenBottomBar(onClick = onEncodeClick)
             }
         }
     ) { paddingValues ->
@@ -87,36 +140,39 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
 
+            // 動画選択
             item {
                 VideoSelect(
                     modifier = Modifier
                         .padding(horizontal = 20.dp)
                         .fillMaxWidth(),
-                    videoFormat = inputVideoFormat.value,
-                    onFileSelect = { uri -> viewModel.setInputVideoUri(uri) }
+                    videoFormat = inputVideoFormat,
+                    onFileSelect = onInputVideoUri
                 )
             }
 
-            if (encoderParams.value != null) {
+            // エンコーダー設定項目
+            if (encoderParams != null) {
                 item {
                     VideoEncoderSetting(
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
                             .fillMaxWidth(),
-                        encoderParams = encoderParams.value!!,
-                        onReset = { viewModel.setInitialEncoderParams() },
-                        onUpdate = { params -> viewModel.updateEncoderParams(params) }
+                        encoderParams = encoderParams,
+                        onReset = onResetInitialEncoderParams,
+                        onUpdate = onUpdateEncoderParams
                     )
                 }
             }
 
-            if (encoderParams.value != null && inputVideoFormat.value != null) {
+            // 音声が再エンコードされるかどうか
+            if (encoderParams != null && inputVideoFormat != null) {
                 item {
                     AudioInfo(
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
                             .fillMaxWidth(),
-                        isReEncode = !EncoderParams.CodecContainerType.isAudioReEncode(encoderParams.value!!.codecContainerType, inputVideoFormat.value!!.codecContainerType)
+                        isReEncode = encoderParams.codecContainerType != inputVideoFormat.codecContainerType
                     )
                 }
             }

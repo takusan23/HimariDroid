@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "HimariDroid"
 include(":app")
+include(":himari-webm")

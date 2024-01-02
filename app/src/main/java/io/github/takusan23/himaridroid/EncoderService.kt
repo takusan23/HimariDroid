@@ -6,8 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.ServiceInfo
+import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
+import android.widget.Toast
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -15,10 +17,17 @@ import androidx.core.app.ServiceCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import io.github.takusan23.himaridroid.data.EncoderParams
+import io.github.takusan23.himaridroid.processor.ReEncodeTool
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 /** エンコードするためのフォアグラウンドサービス。時間がかかるのでフォアグラウンドサービスでやる。 */
@@ -26,9 +35,15 @@ class EncoderService : Service() {
 
     private val scope = MainScope()
     private val notificationManager by lazy { NotificationManagerCompat.from(this) }
-
-    /** バインドする */
     private val localBinder = LocalBinder(this)
+
+    private val _isEncoding = MutableStateFlow(false)
+
+    /** キャンセル用 */
+    private var encoderJob: Job? = null
+
+    /** エンコード中かどうか */
+    val isEncoding = _isEncoding.asStateFlow()
 
     override fun onBind(intent: Intent?): IBinder = localBinder
 
@@ -38,21 +53,46 @@ class EncoderService : Service() {
     }
 
     /** エンコードを開始する */
-    fun startEncode() {
-        // フォアグラウンドサービスに昇格する
-        setForegroundNotification()
+    fun startEncode(
+        inputUri: Uri,
+        encoderParams: EncoderParams
+    ) {
+        encoderJob = scope.launch {
+            // フォアグラウンドサービスに昇格する
+            setForegroundNotification()
+
+            // エンコードを開始する
+            try {
+                _isEncoding.value = true
+                ReEncodeTool.encoder(
+                    context = this@EncoderService,
+                    inputUri = inputUri,
+                    encoderParams = encoderParams
+                )
+                _isEncoding.value = false
+
+                Toast.makeText(this@EncoderService, "再エンコードが終了しました", Toast.LENGTH_SHORT).show()
+            } finally {
+                // 終わったらフォアグラウンドサービスいらないので
+                stopForeground(STOP_FOREGROUND_REMOVE)
+            }
+        }
+    }
+
+    /** 終了する */
+    suspend fun stop() {
+        encoderJob?.cancelAndJoin()
     }
 
     /** エンコードを強制終了する */
     fun forceStop() {
-        scope.cancel()
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        scope.coroutineContext.cancelChildren()
     }
 
     private fun setForegroundNotification() {
         // 通知ちゃんねる無ければ作る
         if (notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null) {
-            val channel = NotificationChannelCompat.Builder(NOTIFICATION_CHANNEL_ID, NotificationCompat.PRIORITY_LOW).apply {
+            val channel = NotificationChannelCompat.Builder(NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW).apply {
                 setName("エンコーダーサービス実行中通知")
             }.build()
             notificationManager.createNotificationChannel(channel)
