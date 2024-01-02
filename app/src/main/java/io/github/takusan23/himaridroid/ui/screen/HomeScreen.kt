@@ -14,12 +14,14 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -33,15 +35,14 @@ import io.github.takusan23.himaridroid.ui.components.HomeScreenBottomBar
 import io.github.takusan23.himaridroid.ui.components.VideoEncoderSetting
 import io.github.takusan23.himaridroid.ui.components.VideoSelect
 import io.github.takusan23.himaridroid.ui.screen.viewmodel.HomeScreenViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     val inputVideoFormat = viewModel.inputVideoFormat.collectAsState()
     val encoderParams = viewModel.encoderParams.collectAsState()
@@ -64,14 +65,14 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
     if (isEncoding?.value == true) {
         // エンコード中
         EncodingScreen(
-            onStopClick = {
-                scope.launch { encoderService.value?.stop() }
-            }
+            onStopClick = { encoderService.value?.stopEncode() },
+            scrollBehavior = scrollBehavior
         )
     } else {
         // エンコードしてない
         EncoderScreen(
             snackbarHostState = snackbarState,
+            scrollBehavior = scrollBehavior,
             encoderParams = encoderParams.value,
             inputVideoFormat = inputVideoFormat.value,
             onInputVideoUri = { uri -> viewModel.setInputVideoUri(uri) },
@@ -91,9 +92,11 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EncodingScreen(
-    onStopClick: () -> Unit
+    onStopClick: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = { TopAppBar(title = { Text(text = "ひまりどろいど") }) },
     ) { paddingValues ->
         Column() {
@@ -119,6 +122,7 @@ private fun EncodingScreen(
 @Composable
 private fun EncoderScreen(
     snackbarHostState: SnackbarHostState,
+    scrollBehavior: TopAppBarScrollBehavior,
     encoderParams: EncoderParams?,
     inputVideoFormat: VideoFormat?,
     onInputVideoUri: (Uri) -> Unit,
@@ -127,7 +131,13 @@ private fun EncoderScreen(
     onEncodeClick: () -> Unit
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(text = "ひまりどろいど") }) },
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "ひまりどろいど") },
+                scrollBehavior = scrollBehavior
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (encoderParams != null && inputVideoFormat != null) {

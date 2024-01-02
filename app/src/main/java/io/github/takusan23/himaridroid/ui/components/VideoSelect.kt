@@ -83,9 +83,8 @@ private fun VideoTrackInfo(
     Column(modifier = Modifier.fillMaxWidth()) {
 
         Text(text = "選択動画", fontSize = 18.sp)
-        Text(text = "動画の縦横 ${videoFormat.videoHeight} x ${videoFormat.videoWidth}")
-        Text(text = "ビットレート ${videoFormat.bitRate}")
-        Text(text = "フレームレート ${videoFormat.frameRate}")
+        Text(text = "動画の縦 ${videoFormat.videoHeight}")
+        Text(text = "動画の横 ${videoFormat.videoWidth}")
 
         OutlinedButton(
             modifier = Modifier.align(alignment = Alignment.End),

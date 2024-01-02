@@ -157,7 +157,10 @@ private fun NumberInputField(
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             value = value.toString(),
-            onValueChange = { it.toIntOrNull()?.also { onValueChange(it) } },
+            onValueChange = { text ->
+                val number = text.toIntOrNull() ?: 0
+                onValueChange(number)
+            },
             label = { Text(text = label) },
             suffix = if (suffix != null) {
                 {

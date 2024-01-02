@@ -21,7 +21,7 @@ fun HomeScreenBottomBar(onClick: () -> Unit) {
                 modifier = Modifier.weight(1f),
                 text = """
                 しばらく時間がかかります。
-                エンコード中はアプリを離れても大丈夫です。
+                処理中はアプリを離れても大丈夫です。
                 """.trimIndent()
             )
             Button(onClick = onClick) {

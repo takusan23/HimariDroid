@@ -19,9 +19,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import io.github.takusan23.himaridroid.data.EncoderParams
 import io.github.takusan23.himaridroid.processor.ReEncodeTool
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,9 +37,6 @@ class EncoderService : Service() {
 
     private val _isEncoding = MutableStateFlow(false)
 
-    /** キャンセル用 */
-    private var encoderJob: Job? = null
-
     /** エンコード中かどうか */
     val isEncoding = _isEncoding.asStateFlow()
 
@@ -49,7 +44,7 @@ class EncoderService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        forceStop()
+        stopEncode()
     }
 
     /** エンコードを開始する */
@@ -57,7 +52,7 @@ class EncoderService : Service() {
         inputUri: Uri,
         encoderParams: EncoderParams
     ) {
-        encoderJob = scope.launch {
+        scope.launch {
             // フォアグラウンドサービスに昇格する
             setForegroundNotification()
 
@@ -69,23 +64,17 @@ class EncoderService : Service() {
                     inputUri = inputUri,
                     encoderParams = encoderParams
                 )
-                _isEncoding.value = false
-
                 Toast.makeText(this@EncoderService, "再エンコードが終了しました", Toast.LENGTH_SHORT).show()
             } finally {
-                // 終わったらフォアグラウンドサービスいらないので
+                // コルーチンキャンセル時・エンコーダー終了時
+                _isEncoding.value = false
                 stopForeground(STOP_FOREGROUND_REMOVE)
             }
         }
     }
 
     /** 終了する */
-    suspend fun stop() {
-        encoderJob?.cancelAndJoin()
-    }
-
-    /** エンコードを強制終了する */
-    fun forceStop() {
+    fun stopEncode() {
         scope.coroutineContext.cancelChildren()
     }
 
@@ -146,6 +135,11 @@ class EncoderService : Service() {
 
                 override fun onStop(owner: LifecycleOwner) {
                     super.onStop(owner)
+                    context.unbindService(serviceConnection)
+                }
+
+                override fun onDestroy(owner: LifecycleOwner) {
+                    super.onDestroy(owner)
                     context.unbindService(serviceConnection)
                 }
             }

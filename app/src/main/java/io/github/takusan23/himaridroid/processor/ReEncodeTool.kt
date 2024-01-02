@@ -45,7 +45,11 @@ object ReEncodeTool {
             )
         }
         // 端末の動画フォルダにコピーする
-        MediaTool.saveToVideoFolder(context, resultFile)
+        MediaTool.saveToVideoFolder(
+            context,
+            resultFile,
+            encoderParams.codecContainerType.containerType
+        )
         resultFile.delete()
     }
 

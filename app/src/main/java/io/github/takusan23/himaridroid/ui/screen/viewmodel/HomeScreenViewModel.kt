@@ -118,7 +118,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
             codecContainerType = codecContainerType,
             videoHeight = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT),
             videoWidth = mediaFormat.getInteger(MediaFormat.KEY_WIDTH),
-            bitRate = runCatching { mediaFormat.getInteger(MediaFormat.KEY_BIT_RATE) }.getOrNull() ?: 6_000_000,
+            bitRate = runCatching { mediaFormat.getInteger(MediaFormat.KEY_BIT_RATE) }.getOrNull() ?: 3_000_000,
             frameRate = runCatching { mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE) }.getOrNull() ?: 30 // 含まれていなければ適当に 30 fps
         )
         extractor.release()

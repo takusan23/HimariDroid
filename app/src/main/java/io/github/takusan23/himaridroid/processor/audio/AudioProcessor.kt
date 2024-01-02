@@ -93,7 +93,7 @@ object AudioProcessor {
         sonic.sampleRate = outSamplingRate
         sonic.speed = 1f
         sonic.pitch = 1f
-        sonic.setRate(44_100f / 48_000f)
+        sonic.rate = (inSamplingRate / outSamplingRate).toFloat()
         sonic.volume = 1f
         sonic.chordPitch = false
         sonic.quality = 0

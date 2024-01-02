@@ -49,7 +49,7 @@ private val codecDescriptionList = listOf(
     CodecDescription(
         codecContainerType = EncoderParams.CodecContainerType.VP9_OPUS_WEBM,
         title = "VP9 + Opus + WebM",
-        description = "AV1 の一つ前に出たコーデック。AV1 が良いけど再生できないのが困るならこちらで。"
+        description = "WebM 形式で効率の良いコーデック。AV1 が良いけど再生できないのが困るならこちらで。"
     ),
     CodecDescription(
         codecContainerType = EncoderParams.CodecContainerType.AV1_OPUS_WEBM,

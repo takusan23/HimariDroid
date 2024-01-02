@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.contentValuesOf
+import io.github.takusan23.himaridroid.data.EncoderParams
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -136,13 +137,18 @@ object MediaTool {
     /** 端末の動画フォルダに保存する */
     suspend fun saveToVideoFolder(
         context: Context,
-        file: File
+        file: File,
+        containerType: EncoderParams.ContainerType
     ) = withContext(Dispatchers.IO) {
         val contentResolver = context.contentResolver
+        val mimeType = when (containerType) {
+            EncoderParams.ContainerType.MPEG_4 -> "video/mp4"
+            EncoderParams.ContainerType.WEBM -> "video/webm"
+        }
         val contentValues = contentValuesOf(
             MediaStore.MediaColumns.DISPLAY_NAME to file.name,
             MediaStore.MediaColumns.RELATIVE_PATH to "${Environment.DIRECTORY_MOVIES}/HimariDroid",
-            MediaStore.MediaColumns.MIME_TYPE to "video/mp4"
+            MediaStore.MediaColumns.MIME_TYPE to mimeType
         )
         val uri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return@withContext
         // コピーする
