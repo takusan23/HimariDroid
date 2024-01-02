@@ -47,6 +47,14 @@ class EncoderService : Service() {
         stopEncode()
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        // エンコード中でなければタスクキル時に終了
+        if (!isEncoding.value) {
+            stopSelf()
+        }
+    }
+
     /** エンコードを開始する */
     fun startEncode(
         inputUri: Uri,
@@ -135,11 +143,6 @@ class EncoderService : Service() {
 
                 override fun onStop(owner: LifecycleOwner) {
                     super.onStop(owner)
-                    context.unbindService(serviceConnection)
-                }
-
-                override fun onDestroy(owner: LifecycleOwner) {
-                    super.onDestroy(owner)
                     context.unbindService(serviceConnection)
                 }
             }

@@ -48,7 +48,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
     val encoderParams = viewModel.encoderParams.collectAsState()
 
     // エンコーダーサービスとバインドする
-    val encoderService = EncoderService.bindService(context, lifecycleOwner.lifecycle).collectAsState(initial = null)
+    val encoderService = remember { EncoderService.bindService(context, lifecycleOwner.lifecycle) }.collectAsState(initial = null)
     val isEncoding = encoderService.value?.isEncoding?.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
