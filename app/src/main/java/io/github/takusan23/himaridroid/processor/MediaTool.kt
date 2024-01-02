@@ -153,6 +153,13 @@ object MediaTool {
         }
     }
 
+    /** 単位の調整 */
+    fun normalizeByte(byte: Int): String = when {
+        byte >= 1_000_000 -> "${byte / 1_000_000} M"
+        byte >= 1_000 -> "${byte / 1_000} K"
+        else -> byte.toString() // 特に無ければ MB で
+    }
+
     private fun MediaExtractor.getTrackMediaFormat(track: Track): Pair<Int, MediaFormat> {
         // トラックを選択する（映像・音声どっち？）
         val trackIndex = (0 until this.trackCount)

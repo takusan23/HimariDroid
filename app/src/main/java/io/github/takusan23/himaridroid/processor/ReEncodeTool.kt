@@ -1,7 +1,6 @@
 package io.github.takusan23.himaridroid.processor
 
 import android.content.Context
-import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.net.Uri
 import io.github.takusan23.himaridroid.processor.video.VideoProcessor
@@ -14,6 +13,7 @@ object ReEncodeTool {
     suspend fun start(
         context: Context,
         inputUri: Uri,
+        codecName:String,
         videoBitrate: Int
     ) = withContext(Dispatchers.Default) {
         // 再エンコードをする
@@ -23,12 +23,13 @@ object ReEncodeTool {
             resultFile = videoOnlyFile,
             context = context,
             inputUri = inputUri,
-            videoBitrate = videoBitrate
+            videoBitrate = videoBitrate,
+            codecName = codecName
         )
 
         // これだと映像だけなので、音声トラックを追加する。これで AV1 でエンコードした動画ができる。
         // このままだと端末の動画フォルダにコピーされないので、後でその対応をします
-        val resultFile = context.getExternalFilesDir(null)!!.resolve("av1_encode_${System.currentTimeMillis()}.mp4")
+        val resultFile = context.getExternalFilesDir(null)!!.resolve("${codecName.replace("/","")}_${videoBitrate}_${System.currentTimeMillis()}.mp4")
         MediaTool.mixAvTrack(
             audioPair = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.AUDIO),
             videoPair = MediaTool.createMediaExtractor(videoOnlyFile, MediaTool.Track.VIDEO),
@@ -46,7 +47,8 @@ object ReEncodeTool {
         resultFile: File,
         context: Context,
         inputUri: Uri,
-        videoBitrate: Int
+        videoBitrate: Int,
+        codecName: String
     ) {
         // MediaExtractor
         val (videoExtractor, inputVideoFormat) = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.VIDEO)
@@ -59,7 +61,7 @@ object ReEncodeTool {
         VideoProcessor.start(
             mediaExtractor = videoExtractor,
             inputMediaFormat = inputVideoFormat,
-            codec = MediaFormat.MIMETYPE_VIDEO_AV1,
+            codec = codecName,
             bitRate = videoBitrate,
             keyframeInterval = 1,
             onOutputFormat = { format ->
