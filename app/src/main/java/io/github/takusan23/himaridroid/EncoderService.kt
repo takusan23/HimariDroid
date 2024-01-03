@@ -114,7 +114,7 @@ class EncoderService : Service() {
         val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID).apply {
             setContentTitle("再エンコード中です")
             setContentText("進捗 : $currentPositionSec 秒")
-            setSmallIcon(R.drawable.ic_launcher_foreground)
+            setSmallIcon(R.drawable.android_himari_droid)
         }.build()
         // 一応 compat で
         ServiceCompat.startForeground(
