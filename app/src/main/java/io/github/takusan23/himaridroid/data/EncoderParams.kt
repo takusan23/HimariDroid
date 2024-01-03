@@ -17,24 +17,24 @@ data class EncoderParams(
         get() = "${fileNameWithoutExtension}.${codecContainerType.containerType.extension}"
 
     /** コーデックとコンテナの種類 */
-    enum class CodecContainerType(val codecName: String, val containerType: ContainerType) {
+    enum class CodecContainerType(val videoCodec: String, val audioCodec: String, val containerType: ContainerType) {
         /** AVC / AAC / mp4 */
-        AVC_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_AVC, ContainerType.MPEG_4),
+        AVC_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_AVC, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4),
 
         /** HEVC / AAC / mp4 */
-        HEVC_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_HEVC, ContainerType.MPEG_4),
+        HEVC_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_HEVC, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4),
 
         /** AV1 / AAC / mp4 */
-        AV1_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_AV1, ContainerType.MPEG_4),
+        AV1_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_AV1, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4),
 
         /** VP9 / Opus / WebM */
-        VP9_OPUS_WEBM(MediaFormat.MIMETYPE_VIDEO_VP9, ContainerType.WEBM),
+        VP9_OPUS_WEBM(MediaFormat.MIMETYPE_VIDEO_VP9, MediaFormat.MIMETYPE_AUDIO_OPUS, ContainerType.WEBM),
 
         /**
          * AV1 / Opus / WebM
          * WebM コンテナに AV1 を入れるのは仕様にないみたいなのですが、ブラウザ系がやってるので実質対応みたいになっているらしい？
          */
-        AV1_OPUS_WEBM(MediaFormat.MIMETYPE_VIDEO_AV1, ContainerType.WEBM);
+        AV1_OPUS_WEBM(MediaFormat.MIMETYPE_VIDEO_AV1, MediaFormat.MIMETYPE_AUDIO_OPUS, ContainerType.WEBM);
     }
 
     /** コンテナ */

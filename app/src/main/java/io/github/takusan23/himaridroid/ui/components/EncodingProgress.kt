@@ -2,6 +2,7 @@ package io.github.takusan23.himaridroid.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun EncodingProgress(
     modifier: Modifier = Modifier,
+    currentPositionMs: Long,
     onStopClick: () -> Unit
 ) {
     Card(
@@ -32,17 +34,28 @@ fun EncodingProgress(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(
-                text = "再エンコード中です",
-                fontSize = 20.sp
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                CircularProgressIndicator()
+                Text(
+                    text = "再エンコード中です",
+                    fontSize = 20.sp
+                )
+            }
             Text(
                 text = "しばらく時間がかかります。エンコード中はアプリを離れても大丈夫です。",
                 fontSize = 18.sp
             )
-            CircularProgressIndicator(
-                modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
-            )
+
+            Column {
+                Text(text = "再エンコードの進捗(エンコード済みの時間)")
+                Text(
+                    text = "${currentPositionMs / 1_000} 秒",
+                    fontSize = 18.sp
+                )
+            }
 
             Button(
                 modifier = Modifier.align(alignment = Alignment.End),

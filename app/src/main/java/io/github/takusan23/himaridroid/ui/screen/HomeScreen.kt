@@ -50,6 +50,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
     // エンコーダーサービスとバインドする
     val encoderService = remember { EncoderService.bindService(context, lifecycleOwner.lifecycle) }.collectAsState(initial = null)
     val isEncoding = encoderService.value?.isEncoding?.collectAsState()
+    val progressCurrentPositionMs = encoderService.value?.progressCurrentPositionMs?.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.snackbarMessage.collect { message ->
@@ -66,7 +67,8 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
         // エンコード中
         EncodingScreen(
             onStopClick = { encoderService.value?.stopEncode() },
-            scrollBehavior = scrollBehavior
+            scrollBehavior = scrollBehavior,
+            currentPositionMs = progressCurrentPositionMs?.value ?: 0
         )
     } else {
         // エンコードしてない
@@ -93,7 +95,8 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
 @Composable
 private fun EncodingScreen(
     onStopClick: () -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    currentPositionMs: Long
 ) {
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -109,6 +112,7 @@ private fun EncodingScreen(
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
                             .fillMaxWidth(),
+                        currentPositionMs = currentPositionMs,
                         onStopClick = onStopClick
                     )
                 }
@@ -182,7 +186,7 @@ private fun EncoderScreen(
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
                             .fillMaxWidth(),
-                        isReEncode = encoderParams.codecContainerType != inputVideoFormat.codecContainerType
+                        isReEncode = encoderParams.codecContainerType.audioCodec != inputVideoFormat.codecContainerType.audioCodec
                     )
                 }
             }

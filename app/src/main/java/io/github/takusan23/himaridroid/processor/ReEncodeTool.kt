@@ -27,13 +27,15 @@ object ReEncodeTool {
     suspend fun encoder(
         context: Context,
         inputUri: Uri,
-        encoderParams: EncoderParams
+        encoderParams: EncoderParams,
+        onProgressCurrentPositionMs: (Long) -> Unit
     ): Unit = withContext(Dispatchers.Default) {
         val resultFile = if (encoderParams.codecContainerType.containerType == EncoderParams.ContainerType.MPEG_4) {
             // MP4 なら MediaMuxer
             startEncodeToMp4(
                 context = context,
                 inputUri = inputUri,
+                onProgressCurrentPositionMs = onProgressCurrentPositionMs,
                 encoderParams = encoderParams
             )
         } else {
@@ -41,6 +43,7 @@ object ReEncodeTool {
             startEncodeToWebm(
                 context = context,
                 inputUri = inputUri,
+                onProgressCurrentPositionMs = onProgressCurrentPositionMs,
                 encoderParams = encoderParams
             )
         }
@@ -58,6 +61,7 @@ object ReEncodeTool {
         context: Context,
         inputUri: Uri,
         encoderParams: EncoderParams,
+        onProgressCurrentPositionMs: (Long) -> Unit
     ) = withContext(Dispatchers.Default) {
         // 出力先
         val resultFile = context.getExternalFilesDir(null)!!.resolve(encoderParams.fileNameAndExtension)
@@ -73,6 +77,7 @@ object ReEncodeTool {
             context = context,
             inputUri = inputUri,
             encoderParams = encoderParams,
+            onProgressCurrentPositionMs = onProgressCurrentPositionMs,
             onOutputFormat = { mediaFormat ->
                 videoIndex = mediaMuxer.addTrack(mediaFormat)
                 mediaMuxer.start()
@@ -111,6 +116,7 @@ object ReEncodeTool {
         context: Context,
         inputUri: Uri,
         encoderParams: EncoderParams,
+        onProgressCurrentPositionMs: (Long) -> Unit,
     ) = withContext(Dispatchers.Default) {
         // 一時的にファイルを置いておきたいので
         val tempFolder = context.getExternalFilesDir(null)!!.resolve("temp_folder").apply { mkdir() }
@@ -128,6 +134,7 @@ object ReEncodeTool {
                         context = context,
                         inputUri = inputUri,
                         encoderParams = encoderParams,
+                        onProgressCurrentPositionMs = onProgressCurrentPositionMs,
                         onOutputFormat = { mediaFormat ->
                             // VP9 か AV1 のみ
                             val codecName = when (mediaFormat.getString(MediaFormat.KEY_MIME)) {
@@ -203,6 +210,7 @@ object ReEncodeTool {
         context: Context,
         inputUri: Uri,
         encoderParams: EncoderParams,
+        onProgressCurrentPositionMs: (Long) -> Unit,
         onOutputFormat: suspend (MediaFormat) -> Unit,
         onOutputData: suspend (ByteBuffer, MediaCodec.BufferInfo) -> Unit
     ) {
@@ -213,6 +221,7 @@ object ReEncodeTool {
             mediaExtractor = videoExtractor,
             inputMediaFormat = inputVideoFormat,
             encoderParams = encoderParams,
+            onProgressCurrentPositionMs = onProgressCurrentPositionMs,
             onOutputFormat = onOutputFormat,
             onOutputData = onOutputData
         )
@@ -241,10 +250,11 @@ object ReEncodeTool {
 
             // サンプリングレートの変換が必要ならやる
             val inSamplingRate = inputAudioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+            val inChannelCount = inputAudioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
             AudioProcessor.upsamplingBySonic(
                 inFile = rawFile,
                 outFile = upsamplingFile,
-                channelCount = 2,
+                channelCount = inChannelCount,
                 inSamplingRate = inSamplingRate,
                 outSamplingRate = outputSamplingRate
             )

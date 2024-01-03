@@ -36,9 +36,11 @@ class EncoderService : Service() {
     private val localBinder = LocalBinder(this)
 
     private val _isEncoding = MutableStateFlow(false)
+    private val _progressCurrentPositionMs = MutableStateFlow(0L)
 
     /** エンコード中かどうか */
     val isEncoding = _isEncoding.asStateFlow()
+    val progressCurrentPositionMs = _progressCurrentPositionMs.asStateFlow()
 
     override fun onBind(intent: Intent?): IBinder = localBinder
 
@@ -64,13 +66,28 @@ class EncoderService : Service() {
             // フォアグラウンドサービスに昇格する
             setForegroundNotification()
 
+            // Flow を購読する
+            launch {
+                // 秒が変化したら
+                var prevCurrentPositionSec = 0
+                progressCurrentPositionMs.collect {
+                    val second = (it / 1_000).toInt()
+                    if (prevCurrentPositionSec != second) {
+                        prevCurrentPositionSec = second
+                        setForegroundNotification(second)
+                    }
+                }
+            }
+
             // エンコードを開始する
             try {
                 _isEncoding.value = true
+
                 ReEncodeTool.encoder(
                     context = this@EncoderService,
                     inputUri = inputUri,
-                    encoderParams = encoderParams
+                    encoderParams = encoderParams,
+                    onProgressCurrentPositionMs = { currentPosition -> _progressCurrentPositionMs.value = currentPosition }
                 )
                 Toast.makeText(this@EncoderService, "再エンコードが終了しました", Toast.LENGTH_SHORT).show()
             } finally {
@@ -86,7 +103,7 @@ class EncoderService : Service() {
         scope.coroutineContext.cancelChildren()
     }
 
-    private fun setForegroundNotification() {
+    private fun setForegroundNotification(currentPositionSec: Int = 0) {
         // 通知ちゃんねる無ければ作る
         if (notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null) {
             val channel = NotificationChannelCompat.Builder(NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW).apply {
@@ -96,7 +113,7 @@ class EncoderService : Service() {
         }
         val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID).apply {
             setContentTitle("再エンコード中です")
-            setContentText("進捗")
+            setContentText("進捗 : $currentPositionSec 秒")
             setSmallIcon(R.drawable.ic_launcher_foreground)
         }.build()
         // 一応 compat で

@@ -56,17 +56,15 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
     /** エンコーダー設定をリセットする */
     fun setInitialEncoderParams() {
         val videoFormat = inputVideoFormat.value ?: return
-        viewModelScope.launch {
-            val fileNameWithoutExtension = "$FILENAME_PREFIX${videoFormat.fileName.split(".").first()}"
-            _encoderParams.value = EncoderParams(
-                fileNameWithoutExtension = fileNameWithoutExtension,
-                videoWidth = videoFormat.videoWidth,
-                videoHeight = videoFormat.videoHeight,
-                bitRate = videoFormat.bitRate,
-                frameRate = videoFormat.frameRate,
-                codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4
-            )
-        }
+        val fileNameWithoutExtension = "$FILENAME_PREFIX${videoFormat.fileName.split(".").first()}"
+        _encoderParams.value = EncoderParams(
+            fileNameWithoutExtension = fileNameWithoutExtension,
+            videoWidth = videoFormat.videoWidth,
+            videoHeight = videoFormat.videoHeight,
+            bitRate = videoFormat.bitRate,
+            frameRate = videoFormat.frameRate,
+            codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4
+        )
     }
 
     /** Snackbar を消す */
@@ -95,14 +93,14 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
 
         // TODO 音声コーデックは見てねえわ
         val codecContainerType = when (container) {
-            "video/mp4" -> when (codec) {
+            MIME_TYPE_MP4 -> when (codec) {
                 MediaFormat.MIMETYPE_VIDEO_AVC -> EncoderParams.CodecContainerType.AVC_AAC_MPEG4
                 MediaFormat.MIMETYPE_VIDEO_HEVC -> EncoderParams.CodecContainerType.HEVC_AAC_MPEG4
                 MediaFormat.MIMETYPE_VIDEO_AV1 -> EncoderParams.CodecContainerType.AV1_AAC_MPEG4
                 else -> null
             }
 
-            "video/webm" -> when (codec) {
+            MIME_TYPE_WEBM -> when (codec) {
                 MediaFormat.MIMETYPE_VIDEO_VP9 -> EncoderParams.CodecContainerType.VP9_OPUS_WEBM
                 MediaFormat.MIMETYPE_VIDEO_AV1 -> EncoderParams.CodecContainerType.AV1_OPUS_WEBM
                 else -> null
@@ -131,5 +129,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
 
     companion object {
         private const val FILENAME_PREFIX = "HimariDroid_"
+        private const val MIME_TYPE_MP4 = "video/mp4"
+        private const val MIME_TYPE_WEBM = "video/webm"
     }
 }

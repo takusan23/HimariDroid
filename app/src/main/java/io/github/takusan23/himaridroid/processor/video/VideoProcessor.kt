@@ -20,12 +20,13 @@ object VideoProcessor {
         mediaExtractor: MediaExtractor,
         inputMediaFormat: MediaFormat,
         encoderParams: EncoderParams,
+        onProgressCurrentPositionMs: (Long) -> Unit,
         onOutputFormat: suspend (MediaFormat) -> Unit,
         onOutputData: suspend (ByteBuffer, MediaCodec.BufferInfo) -> Unit
     ) = withContext(Dispatchers.Default) {
 
         // エンコーダーにセットするMediaFormat
-        val videoMediaFormat = MediaFormat.createVideoFormat(encoderParams.codecContainerType.codecName, encoderParams.videoWidth, encoderParams.videoHeight).apply {
+        val videoMediaFormat = MediaFormat.createVideoFormat(encoderParams.codecContainerType.videoCodec, encoderParams.videoWidth, encoderParams.videoHeight).apply {
             setInteger(MediaFormat.KEY_BIT_RATE, encoderParams.bitRate)
             setInteger(MediaFormat.KEY_FRAME_RATE, encoderParams.frameRate)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1)
@@ -33,7 +34,7 @@ object VideoProcessor {
         }
 
         // エンコード用 MediaCodec
-        val encodeMediaCodec = MediaCodec.createEncoderByType(encoderParams.codecContainerType.codecName).apply {
+        val encodeMediaCodec = MediaCodec.createEncoderByType(encoderParams.codecContainerType.videoCodec).apply {
             configure(videoMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         }
 
@@ -94,6 +95,8 @@ object VideoProcessor {
                             if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG == 0) {
                                 // MediaMuxer へ addTrack した後
                                 onOutputData(encodedData, bufferInfo)
+                                // 進捗更新
+                                onProgressCurrentPositionMs(mediaExtractor.sampleTime / 1_000)
                             }
                         }
                         isOutputEol = bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0

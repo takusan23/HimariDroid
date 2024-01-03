@@ -93,11 +93,12 @@ object AudioProcessor {
         sonic.sampleRate = outSamplingRate
         sonic.speed = 1f
         sonic.pitch = 1f
-        sonic.rate = (inSamplingRate / outSamplingRate).toFloat()
+        sonic.rate = inSamplingRate.toFloat() / outSamplingRate.toFloat()
         sonic.volume = 1f
         sonic.chordPitch = false
         sonic.quality = 0
 
+        println("rate = ${(inSamplingRate / outSamplingRate).toFloat()}")
         inFile.inputStream().use { inputStream ->
             outFile.outputStream().use { outputStream ->
 
