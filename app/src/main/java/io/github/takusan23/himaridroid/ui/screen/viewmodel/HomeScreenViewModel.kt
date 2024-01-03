@@ -56,14 +56,17 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
     /** エンコーダー設定をリセットする */
     fun setInitialEncoderParams() {
         val videoFormat = inputVideoFormat.value ?: return
-        _encoderParams.value = EncoderParams(
-            fileNameWithoutExtension = "HimariDroid_${System.currentTimeMillis()}",
-            videoWidth = videoFormat.videoWidth,
-            videoHeight = videoFormat.videoHeight,
-            bitRate = videoFormat.bitRate,
-            frameRate = videoFormat.frameRate,
-            codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4
-        )
+        viewModelScope.launch {
+            val fileNameWithoutExtension = "$FILENAME_PREFIX${videoFormat.fileName.split(".").first()}"
+            _encoderParams.value = EncoderParams(
+                fileNameWithoutExtension = fileNameWithoutExtension,
+                videoWidth = videoFormat.videoWidth,
+                videoHeight = videoFormat.videoHeight,
+                bitRate = videoFormat.bitRate,
+                frameRate = videoFormat.frameRate,
+                codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4
+            )
+        }
     }
 
     /** Snackbar を消す */
@@ -116,6 +119,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
 
         val videoFormat = VideoFormat(
             codecContainerType = codecContainerType,
+            fileName = MediaTool.getFileName(context, uri),
             videoHeight = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT),
             videoWidth = mediaFormat.getInteger(MediaFormat.KEY_WIDTH),
             bitRate = runCatching { mediaFormat.getInteger(MediaFormat.KEY_BIT_RATE) }.getOrNull() ?: 3_000_000,
@@ -125,4 +129,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
         return@withContext videoFormat
     }
 
+    companion object {
+        private const val FILENAME_PREFIX = "HimariDroid_"
+    }
 }

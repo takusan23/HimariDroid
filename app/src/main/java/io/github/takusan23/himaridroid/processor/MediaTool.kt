@@ -159,6 +159,17 @@ object MediaTool {
         }
     }
 
+    /** Uri のファイル名を取得する */
+    suspend fun getFileName(
+        context: Context,
+        uri: Uri
+    ) = withContext(Dispatchers.IO) {
+        context.contentResolver.query(uri, arrayOf(MediaStore.Images.Media.DISPLAY_NAME), null, null, null)!!.use { cursor ->
+            cursor.moveToFirst()
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME))
+        }
+    }
+
     private fun MediaExtractor.getTrackMediaFormat(track: Track): Pair<Int, MediaFormat> {
         // トラックを選択する（映像・音声どっち？）
         val trackIndex = (0 until this.trackCount)
