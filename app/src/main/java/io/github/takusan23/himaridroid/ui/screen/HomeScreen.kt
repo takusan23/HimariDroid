@@ -2,13 +2,14 @@ package io.github.takusan23.himaridroid.ui.screen
 
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -24,9 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.takusan23.himaridroid.EncoderService
+import io.github.takusan23.himaridroid.R
 import io.github.takusan23.himaridroid.data.EncoderParams
 import io.github.takusan23.himaridroid.data.VideoFormat
 import io.github.takusan23.himaridroid.ui.components.AudioInfo
@@ -38,7 +41,10 @@ import io.github.takusan23.himaridroid.ui.screen.viewmodel.HomeScreenViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
+fun HomeScreen(
+    viewModel: HomeScreenViewModel = viewModel(),
+    onNavigate: (NavigationPaths) -> Unit
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarState = remember { SnackbarHostState() }
@@ -77,6 +83,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
             scrollBehavior = scrollBehavior,
             encoderParams = encoderParams.value,
             inputVideoFormat = inputVideoFormat.value,
+            onSettingClick = { onNavigate(NavigationPaths.Setting) },
             onInputVideoUri = { uri -> viewModel.setInputVideoUri(uri) },
             onResetInitialEncoderParams = { viewModel.setInitialEncoderParams() },
             onUpdateEncoderParams = { params -> viewModel.updateEncoderParams(params) },
@@ -102,20 +109,18 @@ private fun EncodingScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = { TopAppBar(title = { Text(text = "ひまりどろいど") }) },
     ) { paddingValues ->
-        Column() {
-            LazyColumn(
-                modifier = Modifier.padding(paddingValues),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                item {
-                    EncodingProgress(
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .fillMaxWidth(),
-                        currentPositionMs = currentPositionMs,
-                        onStopClick = onStopClick
-                    )
-                }
+        LazyColumn(
+            modifier = Modifier.padding(paddingValues),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item {
+                EncodingProgress(
+                    modifier = Modifier
+                        .padding(horizontal = 20.dp)
+                        .fillMaxWidth(),
+                    currentPositionMs = currentPositionMs,
+                    onStopClick = onStopClick
+                )
             }
         }
     }
@@ -132,14 +137,20 @@ private fun EncoderScreen(
     onInputVideoUri: (Uri) -> Unit,
     onResetInitialEncoderParams: () -> Unit,
     onUpdateEncoderParams: (EncoderParams) -> Unit,
-    onEncodeClick: () -> Unit
+    onEncodeClick: () -> Unit,
+    onSettingClick: () -> Unit,
 ) {
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = { Text(text = "ひまりどろいど") },
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                actions = {
+                    IconButton(onClick = onSettingClick) {
+                        Icon(painter = painterResource(id = R.drawable.settings_24px), contentDescription = null)
+                    }
+                }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
