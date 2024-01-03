@@ -24,6 +24,8 @@ fun EncodingProgress(
     currentPositionMs: Long,
     onStopClick: () -> Unit
 ) {
+    val positionSec = currentPositionMs / 1_000
+
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp)
@@ -49,12 +51,16 @@ fun EncodingProgress(
                 fontSize = 18.sp
             )
 
-            Column {
-                Text(text = "再エンコードの進捗(エンコード済みの時間)")
-                Text(
-                    text = "${currentPositionMs / 1_000} 秒",
-                    fontSize = 18.sp
-                )
+            if (positionSec == 0L) {
+                Text(text = "しばらくお待ちください...")
+            } else {
+                Column {
+                    Text(text = "再エンコードの進捗(エンコード済みの時間)")
+                    Text(
+                        text = "$positionSec 秒",
+                        fontSize = 18.sp
+                    )
+                }
             }
 
             Button(
