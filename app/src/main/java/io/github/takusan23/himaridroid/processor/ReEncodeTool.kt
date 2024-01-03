@@ -88,26 +88,30 @@ object ReEncodeTool {
         )
 
         // 終わったら音声
-        audioMediaExtractor.apply {
+        audioMediaExtractor.also { extractor ->
             val byteBuffer = ByteBuffer.allocate(8192)
             val bufferInfo = MediaCodec.BufferInfo()
             // データが無くなるまで回す
             while (isActive) {
                 // データを読み出す
                 val offset = byteBuffer.arrayOffset()
-                bufferInfo.size = readSampleData(byteBuffer, offset)
+                bufferInfo.size = extractor.readSampleData(byteBuffer, offset)
                 // もう無い場合
                 if (bufferInfo.size < 0) break
                 // 書き込む
-                bufferInfo.presentationTimeUs = sampleTime
-                bufferInfo.flags = sampleFlags // Lintがキレるけど黙らせる
+                bufferInfo.presentationTimeUs = extractor.sampleTime
+                bufferInfo.flags = extractor.sampleFlags // Lintがキレるけど黙らせる
                 mediaMuxer.writeSampleData(audioIndex, byteBuffer, bufferInfo)
                 // 次のデータに進める
-                advance()
+                extractor.advance()
             }
             // あとしまつ
-            release()
+            extractor.release()
         }
+
+        // 書き込み終わり
+        mediaMuxer.stop()
+        mediaMuxer.release()
         return@withContext resultFile
     }
 
