@@ -19,6 +19,7 @@ object AudioProcessor {
         mediaExtractor: MediaExtractor,
         mediaFormat: MediaFormat,
         outputFile: File,
+        onOutputFormat: (MediaFormat) -> Unit
     ) = withContext(Dispatchers.IO) {
         // デコーダーにメタデータを渡す
         val audioDecoder = AudioDecoder().apply {
@@ -28,6 +29,7 @@ object AudioProcessor {
         outputFile.outputStream().use { outputStream ->
             // デコードする
             audioDecoder.startAudioDecode(
+                onOutputFormat = onOutputFormat,
                 readSampleData = { byteBuffer ->
                     // データを進める
                     val size = mediaExtractor.readSampleData(byteBuffer, 0)
@@ -98,7 +100,6 @@ object AudioProcessor {
         sonic.chordPitch = false
         sonic.quality = 0
 
-        println("rate = ${(inSamplingRate / outSamplingRate).toFloat()}")
         inFile.inputStream().use { inputStream ->
             outFile.outputStream().use { outputStream ->
 

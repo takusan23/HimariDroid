@@ -33,12 +33,14 @@ class AudioDecoder {
     /**
      * 音声のデコードをする
      *
+     * @param onOutputFormat MediaFormat が確定したときに呼ばれる
      * @param readSampleData ByteArrayを渡すので、音声データを入れて、サイズと再生時間（マイクロ秒）を返してください
      * @param onOutputBufferAvailable デコードされたデータが流れてきます
      */
     suspend fun startAudioDecode(
+        onOutputFormat: (MediaFormat) -> Unit,
         readSampleData: (ByteBuffer) -> Pair<Int, Long>,
-        onOutputBufferAvailable: (ByteArray) -> Unit
+        onOutputBufferAvailable: (ByteArray) -> Unit,
     ) = withContext(Dispatchers.Default) {
         val bufferInfo = MediaCodec.BufferInfo()
         mediaCodec!!.start()
@@ -71,6 +73,12 @@ class AudioDecoder {
                     onOutputBufferAvailable(outData)
                     // 返却
                     mediaCodec!!.releaseOutputBuffer(outputBufferId, false)
+                } else if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    // HE-AAC を MediaExtractor で解析すると、サンプリングレートが半分になる現象があった。
+                    // 調べると、デコーダーが吐き出す MediaFormat を見る必要があった模様。
+                    // ドキュメントに書いとけ
+                    // https://stackoverflow.com/questions/33609775/
+                    onOutputFormat(mediaCodec!!.outputFormat)
                 }
             }
         } catch (e: Exception) {

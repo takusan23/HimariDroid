@@ -240,17 +240,23 @@ object ReEncodeTool {
         val rawFile = tempFolder.resolve(TEMP_AUDIO_RAW_FILE)
         val upsamplingFile = tempFolder.resolve(TEMP_AUDIO_UPSAMPLING_FILE)
 
+        // 実はデコーダーから出てきた MediaCodec#getOutputFormat を信用する必要がある
+        // 詳しくは AudioDecoder で
+        var decoderOutputMediaFormat: MediaFormat? = null
+
         try {
             // PCM にする
             AudioProcessor.decodeAudio(
+                onOutputFormat = { decoderOutputMediaFormat = it },
                 mediaExtractor = videoExtractor,
                 mediaFormat = inputAudioFormat,
                 outputFile = rawFile
             )
 
             // サンプリングレートの変換が必要ならやる
-            val inSamplingRate = inputAudioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-            val inChannelCount = inputAudioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+            // デコーダーからの MediaFormat を優先
+            val inSamplingRate = (decoderOutputMediaFormat ?: inputAudioFormat).getInteger(MediaFormat.KEY_SAMPLE_RATE)
+            val inChannelCount = (decoderOutputMediaFormat ?: inputAudioFormat).getInteger(MediaFormat.KEY_CHANNEL_COUNT)
             AudioProcessor.upsamplingBySonic(
                 inFile = rawFile,
                 outFile = upsamplingFile,

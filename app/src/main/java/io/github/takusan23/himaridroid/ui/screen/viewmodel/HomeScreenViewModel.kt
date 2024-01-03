@@ -85,7 +85,6 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
 
         // コーデックとコンテナを探す
         // 拡張子は嘘をつく可能性があるので、実際のバイナリから見る
-
         val codec = mediaFormat.getString(MediaFormat.KEY_MIME)
         val container = MediaMetadataRetriever().apply {
             context.contentResolver.openFileDescriptor(uri, "r")?.use { setDataSource(it.fileDescriptor) }
