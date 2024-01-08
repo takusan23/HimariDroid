@@ -16,8 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.takusan23.himaridroid.R
 import io.github.takusan23.himaridroid.data.VideoFormat
 
 /** 動画選択 */
@@ -49,7 +51,7 @@ fun VideoSelect(
         ) {
 
             Text(
-                text = "動画を選ぶ",
+                text = stringResource(id = R.string.video_select_title),
                 fontSize = 20.sp
             )
 
@@ -60,14 +62,14 @@ fun VideoSelect(
                 )
             } else {
                 Text(
-                    text = "変換したい動画を選んでください",
+                    text = stringResource(id = R.string.video_select_description),
                     fontSize = 18.sp
                 )
                 Button(
                     modifier = Modifier.align(alignment = Alignment.End),
                     onClick = { videoPicker.launch(PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.VideoOnly)) }
                 ) {
-                    Text(text = "動画を選ぶ")
+                    Text(text = stringResource(id = R.string.video_select_button))
                 }
             }
         }
@@ -82,15 +84,15 @@ private fun VideoTrackInfo(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
 
-        Text(text = "選択動画", fontSize = 18.sp)
-        Text(text = "ファイル名 : ${videoFormat.fileName}")
-        Text(text = "動画の縦横 : ${videoFormat.videoHeight} x ${videoFormat.videoWidth}")
+        Text(text = stringResource(id = R.string.video_select_info_title), fontSize = 18.sp)
+        Text(text = "${stringResource(id = R.string.video_select_info_file_name)} : ${videoFormat.fileName}")
+        Text(text = "${stringResource(id = R.string.video_select_info_height_width)} : ${videoFormat.videoHeight} x ${videoFormat.videoWidth}")
 
         OutlinedButton(
             modifier = Modifier.align(alignment = Alignment.End),
             onClick = onClick
         ) {
-            Text(text = "動画を選び直す")
+            Text(text = stringResource(id = R.string.video_select_info_re_select))
         }
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -34,7 +35,7 @@ fun SettingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "設定") },
+                title = { Text(text = stringResource(id = R.string.setting_screen)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(painter = painterResource(id = R.drawable.arrow_back_24px), contentDescription = null)
@@ -47,8 +48,8 @@ fun SettingScreen(
             item {
                 SettingItem(
                     modifier = Modifier.fillMaxWidth(),
-                    title = "GitHub を開く",
-                    description = "ソースコードです",
+                    title = stringResource(id = R.string.setting_open_github_title),
+                    description = stringResource(id = R.string.setting_open_github_description),
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, GITHUB_REPOSITORY_URL.toUri())
                         context.startActivity(intent)
@@ -58,8 +59,8 @@ fun SettingScreen(
             item {
                 SettingItem(
                     modifier = Modifier.fillMaxWidth(),
-                    title = "ライセンスを開く",
-                    description = "thx!!!",
+                    title = stringResource(id = R.string.setting_open_license_title),
+                    description = stringResource(id = R.string.setting_open_license_description),
                     onClick = { onNavigate(NavigationPaths.License) }
                 )
             }

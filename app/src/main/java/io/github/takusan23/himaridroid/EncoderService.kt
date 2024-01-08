@@ -89,7 +89,7 @@ class EncoderService : Service() {
                     encoderParams = encoderParams,
                     onProgressCurrentPositionMs = { currentPosition -> _progressCurrentPositionMs.value = currentPosition }
                 )
-                Toast.makeText(this@EncoderService, "再エンコードが終了しました", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@EncoderService, getString(R.string.encoder_service_finish), Toast.LENGTH_SHORT).show()
             } finally {
                 // コルーチンキャンセル時・エンコーダー終了時
                 _isEncoding.value = false
@@ -107,13 +107,13 @@ class EncoderService : Service() {
         // 通知ちゃんねる無ければ作る
         if (notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null) {
             val channel = NotificationChannelCompat.Builder(NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW).apply {
-                setName("エンコーダーサービス実行中通知")
+                setName(getString(R.string.encoder_service_notification_channel_title))
             }.build()
             notificationManager.createNotificationChannel(channel)
         }
         val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID).apply {
-            setContentTitle("再エンコード中です")
-            setContentText("進捗 : $currentPositionSec 秒")
+            setContentTitle(getString(R.string.encoder_service_notification_title))
+            setContentText("${getString(R.string.encoder_service_notification_description)} $currentPositionSec ${getString(R.string.seconds)}")
             setSmallIcon(R.drawable.android_himari_droid)
         }.build()
         // 一応 compat で

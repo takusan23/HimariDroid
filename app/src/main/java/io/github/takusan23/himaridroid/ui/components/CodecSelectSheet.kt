@@ -19,8 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.takusan23.himaridroid.R
 import io.github.takusan23.himaridroid.data.EncoderParams
 
 /** 説明 */
@@ -30,34 +33,6 @@ private data class CodecDescription(
     val description: String
 )
 
-private val codecDescriptionList = listOf(
-    CodecDescription(
-        codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
-        title = "AVC (H.264) + AAC + MP4",
-        description = "サイズ気にしないならコレ。大体どこでも再生できる。ビットレートを高くしないと画質があまり良くならない。"
-    ),
-    CodecDescription(
-        codecContainerType = EncoderParams.CodecContainerType.HEVC_AAC_MPEG4,
-        title = "HEVC (H.265) + AAC + MP4",
-        description = "AVC の後継。理論値で AVC の半分のビットレートで同等の画質に出来るみたい（半分のファイルサイズになる）。特許問題のせいか再生できない端末もある。"
-    ),
-    CodecDescription(
-        codecContainerType = EncoderParams.CodecContainerType.AV1_AAC_MPEG4,
-        title = "AV1 + AAC + MP4",
-        description = "HEVC の対抗馬。HEVC と同等かそれ以上の性能。特許問題をクリアした（？）期待の新星。新しいので普及はこれからだが、最近の端末なら再生できる。MP4 形式ではありますが、AV1 がデコードできるプレイヤーが必要です。"
-    ),
-    CodecDescription(
-        codecContainerType = EncoderParams.CodecContainerType.VP9_OPUS_WEBM,
-        title = "VP9 + Opus + WebM",
-        description = "WebM 形式で効率の良いコーデック。AV1 が良いけど再生できないのが困るならこちらで。"
-    ),
-    CodecDescription(
-        codecContainerType = EncoderParams.CodecContainerType.AV1_OPUS_WEBM,
-        title = "AV1 + Opus + WebM",
-        description = "AV1 + AAC + MP4 と同じですが、音声コーデックとコンテナが違います。WebM 形式で AV1 エンコードされた動画が欲しい場合に。拡張子 MP4 だと紛らわしい場合はこっちで。"
-    )
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CodecSelectSheet(
@@ -65,6 +40,39 @@ fun CodecSelectSheet(
     codecContainerType: EncoderParams.CodecContainerType,
     onSelectCodec: (EncoderParams.CodecContainerType) -> Unit
 ) {
+    val context= LocalContext.current
+
+    // コーデック
+    val codecDescriptionList = remember {
+        listOf(
+            CodecDescription(
+                codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
+                title = context.getString(R.string.codec_select_sheet_avc_mp4_title),
+                description = context.getString(R.string.codec_select_sheet_avc_mp4_description)
+            ),
+            CodecDescription(
+                codecContainerType = EncoderParams.CodecContainerType.HEVC_AAC_MPEG4,
+                title = context.getString(R.string.codec_select_sheet_hevc_mp4_title),
+                description = context.getString(R.string.codec_select_sheet_hevc_mp4_description)
+            ),
+            CodecDescription(
+                codecContainerType = EncoderParams.CodecContainerType.AV1_AAC_MPEG4,
+                title = context.getString(R.string.codec_select_sheet_av1_mp4_title),
+                description = context.getString(R.string.codec_select_sheet_av1_mp4_description)
+            ),
+            CodecDescription(
+                codecContainerType = EncoderParams.CodecContainerType.VP9_OPUS_WEBM,
+                title = context.getString(R.string.codec_select_sheet_vp9_webm_title),
+                description = context.getString(R.string.codec_select_sheet_vp9_webm_description)
+            ),
+            CodecDescription(
+                codecContainerType = EncoderParams.CodecContainerType.AV1_OPUS_WEBM,
+                title = context.getString(R.string.codec_select_sheet_av1_webm_title),
+                description = context.getString(R.string.codec_select_sheet_av1_webm_description)
+            )
+        )
+    }
+
     // コーデック選択ボトムシート
     val isOpen = remember { mutableStateOf(false) }
 
@@ -77,7 +85,7 @@ fun CodecSelectSheet(
             ) {
 
                 Text(
-                    text = "コーデック(映像・音声) / コンテナ の選択",
+                    text = stringResource(id = R.string.code_select_sheet_title),
                     fontSize = 20.sp
                 )
 
@@ -130,7 +138,7 @@ fun CodecSelectSheet(
             onValueChange = { /* do nothing */ },
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isOpen.value) },
-            label = { Text(text = "コーデックの選択") }
+            label = { Text(text = stringResource(id = R.string.code_select_sheet_select_button)) }
         )
     }
 

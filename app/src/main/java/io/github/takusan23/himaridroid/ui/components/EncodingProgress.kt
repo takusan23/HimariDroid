@@ -15,8 +15,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.takusan23.himaridroid.R
 
 @Composable
 fun EncodingProgress(
@@ -42,22 +44,22 @@ fun EncodingProgress(
             ) {
                 CircularProgressIndicator()
                 Text(
-                    text = "再エンコード中です",
+                    text = stringResource(id = R.string.encoder_progress_title),
                     fontSize = 20.sp
                 )
             }
             Text(
-                text = "しばらく時間がかかります。エンコード中はアプリを離れても大丈夫です。",
+                text = stringResource(id = R.string.encoder_progress_description),
                 fontSize = 18.sp
             )
 
             if (positionSec == 0L) {
-                Text(text = "しばらくお待ちください...")
+                Text(text = stringResource(id = R.string.encoder_progress_progress_title_please_wait))
             } else {
                 Column {
-                    Text(text = "再エンコードの進捗(エンコード済みの時間)")
+                    Text(text = stringResource(id = R.string.encoder_progress_progress_title))
                     Text(
-                        text = "$positionSec 秒",
+                        text = "$positionSec ${stringResource(id = R.string.seconds)}",
                         fontSize = 18.sp
                     )
                 }
@@ -71,7 +73,7 @@ fun EncodingProgress(
                     contentColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Text(text = "中止する")
+                Text(text = stringResource(id = R.string.encoder_progress_cancel))
             }
         }
     }

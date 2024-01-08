@@ -8,7 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.github.takusan23.himaridroid.R
 
 @Composable
 fun AudioInfo(
@@ -23,9 +25,9 @@ fun AudioInfo(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (isReEncode) {
-                Text(text = "音声トラックは WebM コンテナに入れるために、Opus へ再エンコードされます。")
+                Text(text = stringResource(id = R.string.audio_info_re_encode))
             } else {
-                Text(text = "音声トラックは元データのを利用します。")
+                Text(text = stringResource(id = R.string.audio_info_not_re_encode))
             }
         }
     }

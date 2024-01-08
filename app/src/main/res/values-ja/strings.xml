@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ひまりどろいど</string>
+    <string name="setting_screen">設定</string>
+    <string name="license_screen">ライセンス</string>
+    <string name="setting_open_github_title">GitHub を開く</string>
+    <string name="setting_open_github_description">ソースコードを開きます</string>
+    <string name="setting_open_license_title">ライセンスを開く</string>
+    <string name="setting_open_license_description">thx !!!</string>
+    <string name="encoder_service_notification_channel_title">エンコーダーサービス実行中通知</string>
+    <string name="encoder_service_notification_title">再エンコード中です</string>
+    <string name="encoder_service_notification_description">進捗 :</string>
+    <string name="encoder_service_finish">再エンコードが終了しました</string>
+    <string name="home_screen_error_codec_container">選択した動画の解析に失敗しました。</string>
+    <string name="video_select_title">動画を選ぶ</string>
+    <string name="video_select_description">変換したい動画を選んでください</string>
+    <string name="video_select_button">動画を選ぶ</string>
+    <string name="video_select_info_title">選択した動画</string>
+    <string name="video_select_info_file_name">ファイル名</string>
+    <string name="video_select_info_height_width">動画のサイズ ( 縦 x 横 )</string>
+    <string name="video_select_info_re_select">動画を選び直す</string>
+    <string name="audio_info_not_re_encode">音声トラックは元データのを利用します。</string>
+    <string name="audio_info_re_encode">音声トラックは mp4 / WebM コンテナに入れるために、AAC / Opus へ再エンコードされます。</string>
+    <string name="encoder_progress_title">再エンコード中です</string>
+    <string name="encoder_progress_description">しばらく時間がかかります。エンコード中はアプリを離れても大丈夫です。</string>
+    <string name="encoder_progress_progress_title">再エンコードの進捗 (エンコード済みの動画時間)</string>
+    <string name="seconds">秒</string>
+    <string name="encoder_progress_progress_title_please_wait">しばらくお待ちください ...</string>
+    <string name="encoder_progress_cancel">中止する</string>
+    <string name="video_encoder_setting_title">エンコーダーの設定</string>
+    <string name="video_encoder_setting_file_name">ファイル名</string>
+    <string name="video_encoder_setting_bit_rate">ビットレートの設定 (単位は Bit)</string>
+    <string name="video_encoder_setting_frame_rate">"フレームレート (fps) "</string>
+    <string name="video_encoder_setting_height">動画の縦のサイズ</string>
+    <string name="video_encoder_setting_width">動画の横のサイズ</string>
+    <string name="video_encoder_setting_reset">リセットする</string>
+    <string name="video_encoder_setting_bit_rate_description">1 秒間にどれだけデータを入れるかです。\nH.264 (AVC) と H.265 (HEVC) / VP9 / AV1 を比較すると、前者の最大半分のビットレートで同じ画質になるそうです。</string>
+    <string name="home_screen_bottombar_title">しばらく時間がかかります。\n処理中はアプリを離れても大丈夫です。</string>
+    <string name="home_screen_bottombar_start">開始</string>
+    <string name="codec_select_sheet_avc_mp4_description">サイズ気にしないならコレ。大体どこでも再生できる。ビットレートを高くしないと画質があまり良くならない。</string>
+    <string name="codec_select_sheet_hevc_mp4_description">AVC の後継。理論値で AVC の半分のビットレートで同等の画質に出来るみたい（半分のファイルサイズになる）。特許問題のせいか再生できない端末もある。</string>
+    <string name="codec_select_sheet_av1_mp4_description">HEVC の対抗馬。HEVC と同等かそれ以上の性能。特許問題をクリアしたロイヤリティーフリー。新しいので普及はこれから。MP4 形式ではありますが、AV1 がデコードできるプレイヤーが必要です。</string>
+    <string name="codec_select_sheet_vp9_webm_description">WebM 形式の動画が必要ならこれ。AV1 が新しくて選べない場合はこちら。</string>
+    <string name="codec_select_sheet_av1_webm_description">AV1 + AAC + MP4 と同じですが、音声コーデックとコンテナが違います。WebM 形式で AV1 エンコードされた動画が欲しい場合に。拡張子 MP4 だと紛らわしい場合はこっちで。</string>
+    <string name="code_select_sheet_title">コーデック (映像・音声)  / コンテナ 形式の設定</string>
+    <string name="code_select_sheet_select_button">コーデック・コンテナの選択</string>
+</resources>

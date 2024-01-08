@@ -26,6 +26,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.takusan23.himaridroid.EncoderService
@@ -107,7 +108,7 @@ private fun EncodingScreen(
 ) {
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { TopAppBar(title = { Text(text = "ひまりどろいど") }) },
+        topBar = { TopAppBar(title = { Text(text = stringResource(id = R.string.app_name)) }) },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.padding(paddingValues),
@@ -144,7 +145,7 @@ private fun EncoderScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text(text = "ひまりどろいど") },
+                title = { Text(text = stringResource(id = R.string.app_name)) },
                 scrollBehavior = scrollBehavior,
                 actions = {
                     IconButton(onClick = onSettingClick) {

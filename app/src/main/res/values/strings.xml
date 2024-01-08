@@ -1,3 +1,51 @@
 <resources>
     <string name="app_name">HimariDroid</string>
+    <string name="license_screen">License</string>
+    <string name="setting_screen">Setting</string>
+    <string name="setting_open_github_title">Open GitHub</string>
+    <string name="setting_open_github_description">open source code</string>
+    <string name="setting_open_license_title">Open License</string>
+    <string name="setting_open_license_description">thx !!!</string>
+    <string name="encoder_service_notification_channel_title">Encoder service running notification</string>
+    <string name="encoder_service_notification_title">Re-encoding in progress</string>
+    <string name="encoder_service_notification_description">Progress :</string>
+    <string name="encoder_service_finish">Re-encoding completed</string>
+    <string name="home_screen_error_codec_container">Analysis of the selected video failed.</string>
+    <string name="video_select_title">Choose a video</string>
+    <string name="video_select_description">Choose the video you want to convert</string>
+    <string name="video_select_button">Choose a video</string>
+    <string name="video_select_info_title">Selected video</string>
+    <string name="video_select_info_file_name">file name</string>
+    <string name="video_select_info_height_width">Video size ( height x width )</string>
+    <string name="video_select_info_re_select">Reselect video</string>
+    <string name="audio_info_not_re_encode">The audio track uses the original data.</string>
+    <string name="audio_info_re_encode">Audio tracks are re-encoded to AAC/Opus for inclusion in mp4/WebM containers.</string>
+    <string name="encoder_progress_title">Re-encoding in progress</string>
+    <string name="encoder_progress_description">It will take some time. You can leave the app while encoding.</string>
+    <string name="encoder_progress_progress_title">Re-encoding progress (encoded video time)</string>
+    <string name="seconds">seconds</string>
+    <string name="encoder_progress_progress_title_please_wait">Please wait ...</string>
+    <string name="encoder_progress_cancel">cancel</string>
+    <string name="video_encoder_setting_title">Encoder settings</string>
+    <string name="video_encoder_setting_file_name">file name</string>
+    <string name="video_encoder_setting_bit_rate">Bit rate setting (unit: Bit)</string>
+    <string name="video_encoder_setting_frame_rate">Frame rate (fps)</string>
+    <string name="video_encoder_setting_height">Video height</string>
+    <string name="video_encoder_setting_width">Video width</string>
+    <string name="video_encoder_setting_reset">reset</string>
+    <string name="video_encoder_setting_bit_rate_description">This is how much data is stored in one second. \nWhen comparing H.264 (AVC) and H.265 (HEVC) / VP9 / AV1, it seems that the same image quality can be achieved at up to half the bit rate of the former.</string>
+    <string name="home_screen_bottombar_title">It will take some time. \nYou can leave the app while the process is in progress.</string>
+    <string name="home_screen_bottombar_start">start</string>
+    <string name="codec_select_sheet_avc_mp4_title" translatable="false">AVC (H.264) + AAC + MP4</string>
+    <string name="codec_select_sheet_hevc_mp4_title" translatable="false">HEVC (H.265) + AAC + MP4</string>
+    <string name="codec_select_sheet_av1_mp4_title" translatable="false">AV1 + AAC + MP4</string>
+    <string name="codec_select_sheet_vp9_webm_title" translatable="false">VP9 + Opus + WebM</string>
+    <string name="codec_select_sheet_av1_webm_title" translatable="false">AV1 + Opus + WebM</string>
+    <string name="codec_select_sheet_avc_mp4_description">If you don\'t mind the size, this is it. It can be played almost anywhere. The image quality will not be very good unless you increase the bitrate.</string>
+    <string name="codec_select_sheet_hevc_mp4_description">Successor of AVC. Theoretically, it seems possible to achieve the same image quality with half the bit rate of AVC (half the file size). There are some devices that cannot be played, perhaps due to patent issues.</string>
+    <string name="codec_select_sheet_av1_mp4_description">A rival to HEVC. Performance equal to or better than HEVC. Royalty-free product that has cleared patent issues. Since it is new, it will become more popular. Although it is in MP4 format, you will need a player that can decode AV1.</string>
+    <string name="codec_select_sheet_vp9_webm_description">If you need videos in WebM format, this is it. Click here if you cannot choose AV1 because it is new.</string>
+    <string name="codec_select_sheet_av1_webm_description">Same as AV1 + AAC + MP4, but the audio codec and container are different. If you want AV1 encoded videos in WebM format. If the extension MP4 is confusing, use this one.</string>
+    <string name="code_select_sheet_title">Codec (video/audio)/container format settings</string>
+    <string name="code_select_sheet_select_button">Codec container selection</string>
 </resources>

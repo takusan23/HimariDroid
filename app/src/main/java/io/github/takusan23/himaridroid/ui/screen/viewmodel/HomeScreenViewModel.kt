@@ -9,6 +9,7 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.takusan23.himaridroid.EncoderService
+import io.github.takusan23.himaridroid.R
 import io.github.takusan23.himaridroid.data.EncoderParams
 import io.github.takusan23.himaridroid.data.VideoFormat
 import io.github.takusan23.himaridroid.processor.MediaTool
@@ -110,7 +111,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
 
         // 面倒なのでエラーに倒す
         if (codecContainerType == null) {
-            _snackbarMessage.value = "選択した動画の解析に失敗しました。 $codec / $container"
+            _snackbarMessage.value = "${context.getString(R.string.home_screen_error_codec_container)} $codec / $container"
             return@withContext null
         }
 
