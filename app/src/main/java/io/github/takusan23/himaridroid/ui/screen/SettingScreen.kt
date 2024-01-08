@@ -23,6 +23,7 @@ import androidx.core.net.toUri
 import io.github.takusan23.himaridroid.R
 
 private const val GITHUB_REPOSITORY_URL = "https://github.com/takusan23/HimariDroid"
+private const val PRIVACY_POLICY_URL = "https://github.com/takusan23/HimariDroid/blob/master/PRIVACY_POLICY.md"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +53,17 @@ fun SettingScreen(
                     description = stringResource(id = R.string.setting_open_github_description),
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, GITHUB_REPOSITORY_URL.toUri())
+                        context.startActivity(intent)
+                    }
+                )
+            }
+            item {
+                SettingItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(id = R.string.setting_open_privacy_policy_title),
+                    description = stringResource(id = R.string.setting_open_privacy_policy_description),
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, PRIVACY_POLICY_URL.toUri())
                         context.startActivity(intent)
                     }
                 )

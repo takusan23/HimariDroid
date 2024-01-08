@@ -48,4 +48,6 @@
     <string name="codec_select_sheet_av1_webm_description">Same as AV1 + AAC + MP4, but the audio codec and container are different. If you want AV1 encoded videos in WebM format. If the extension MP4 is confusing, use this one.</string>
     <string name="code_select_sheet_title">Codec (video/audio)/container format settings</string>
     <string name="code_select_sheet_select_button">Codec container selection</string>
+    <string name="setting_open_privacy_policy_title">Open privacy policy</string>
+    <string name="setting_open_privacy_policy_description">open</string>
 </resources>

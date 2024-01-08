@@ -44,4 +44,6 @@
     <string name="codec_select_sheet_av1_webm_description">AV1 + AAC + MP4 と同じですが、音声コーデックとコンテナが違います。WebM 形式で AV1 エンコードされた動画が欲しい場合に。拡張子 MP4 だと紛らわしい場合はこっちで。</string>
     <string name="code_select_sheet_title">コーデック (映像・音声)  / コンテナ 形式の設定</string>
     <string name="code_select_sheet_select_button">コーデック・コンテナの選択</string>
+    <string name="setting_open_privacy_policy_title">プライバシーポリシーを開きます</string>
+    <string name="setting_open_privacy_policy_description">開くよ</string>
 </resources>
