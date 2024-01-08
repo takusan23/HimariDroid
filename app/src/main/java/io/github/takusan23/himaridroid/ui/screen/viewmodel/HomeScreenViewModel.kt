@@ -87,9 +87,12 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
         // コーデックとコンテナを探す
         // 拡張子は嘘をつく可能性があるので、実際のバイナリから見る
         val codec = mediaFormat.getString(MediaFormat.KEY_MIME)
-        val container = MediaMetadataRetriever().apply {
+        val metadataRetriever = MediaMetadataRetriever().apply {
             context.contentResolver.openFileDescriptor(uri, "r")?.use { setDataSource(it.fileDescriptor) }
-        }.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
+        }
+        // ビットレートとか MediaExtractor で取れないやつ
+        val container = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
+        val bitRate = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
 
         // TODO 音声コーデックは見てねえわ
         val codecContainerType = when (container) {
@@ -120,7 +123,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
             fileName = MediaTool.getFileName(context, uri),
             videoHeight = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT),
             videoWidth = mediaFormat.getInteger(MediaFormat.KEY_WIDTH),
-            bitRate = runCatching { mediaFormat.getInteger(MediaFormat.KEY_BIT_RATE) }.getOrNull() ?: 3_000_000,
+            bitRate = bitRate?.toIntOrNull() ?: 3_000_000,
             frameRate = runCatching { mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE) }.getOrNull() ?: 30 // 含まれていなければ適当に 30 fps
         )
         extractor.release()
