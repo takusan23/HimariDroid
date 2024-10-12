@@ -73,7 +73,7 @@ object ReEncodeTool {
 
         // 映像トラックを追加してエンコードする
         var videoIndex = -1
-        encodeVideo(
+        VideoProcessor.start(
             context = context,
             inputUri = inputUri,
             encoderParams = encoderParams,
@@ -134,7 +134,8 @@ object ReEncodeTool {
             listOf(
                 // 映像の再エンコード
                 launch {
-                    encodeVideo(
+                    // 再エンコードをする
+                    VideoProcessor.start(
                         context = context,
                         inputUri = inputUri,
                         encoderParams = encoderParams,
@@ -207,28 +208,6 @@ object ReEncodeTool {
             tempFolder.deleteRecursively()
         }
         return@withContext resultFile
-    }
-
-    /** 映像トラックの再エンコードをする */
-    private suspend fun encodeVideo(
-        context: Context,
-        inputUri: Uri,
-        encoderParams: EncoderParams,
-        onProgressCurrentPositionMs: (Long) -> Unit,
-        onOutputFormat: suspend (MediaFormat) -> Unit,
-        onOutputData: suspend (ByteBuffer, MediaCodec.BufferInfo) -> Unit
-    ) {
-        // MediaExtractor
-        val (videoExtractor, inputVideoFormat) = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.VIDEO)
-        // 再エンコードをする
-        VideoProcessor.start(
-            mediaExtractor = videoExtractor,
-            inputMediaFormat = inputVideoFormat,
-            encoderParams = encoderParams,
-            onProgressCurrentPositionMs = onProgressCurrentPositionMs,
-            onOutputFormat = onOutputFormat,
-            onOutputData = onOutputData
-        )
     }
 
     private suspend fun encodeAudio(

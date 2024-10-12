@@ -90,6 +90,15 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
         val metadataRetriever = MediaMetadataRetriever().apply {
             context.contentResolver.openFileDescriptor(uri, "r")?.use { setDataSource(it.fileDescriptor) }
         }
+
+        // 縦動画の場合、rotation で回転情報が入っていれば width / height を入れ替える
+        val _videoHeight = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT)
+        val _videoWidth = mediaFormat.getInteger(MediaFormat.KEY_WIDTH)
+        val (videoWidth, videoHeight) = when (mediaFormat.getInteger(MediaFormat.KEY_ROTATION)) {
+            90, 270 -> _videoHeight to _videoWidth
+            else -> _videoWidth to _videoHeight
+        }
+
         // ビットレートとか MediaExtractor で取れないやつ
         val container = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
         val bitRate = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
@@ -121,8 +130,8 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
         val videoFormat = VideoFormat(
             codecContainerType = codecContainerType,
             fileName = MediaTool.getFileName(context, uri),
-            videoHeight = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT),
-            videoWidth = mediaFormat.getInteger(MediaFormat.KEY_WIDTH),
+            videoHeight = videoHeight,
+            videoWidth = videoWidth,
             bitRate = bitRate?.toIntOrNull() ?: 3_000_000,
             frameRate = runCatching { mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE) }.getOrNull() ?: 30 // 含まれていなければ適当に 30 fps
         )
