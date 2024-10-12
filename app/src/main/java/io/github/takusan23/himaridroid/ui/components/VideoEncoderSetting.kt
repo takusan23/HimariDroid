@@ -62,7 +62,7 @@ fun VideoEncoderSetting(
             )
 
             // コーデック選択ボトムシート
-            CodecSelectSheet(
+            CodecSelectBottomSheetMenuBox(
                 modifier = Modifier.fillMaxWidth(),
                 codecContainerType = encoderParams.codecContainerType,
                 onSelectCodec = { type ->

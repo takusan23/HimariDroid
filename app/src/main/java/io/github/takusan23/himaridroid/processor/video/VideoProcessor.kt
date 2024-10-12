@@ -40,7 +40,13 @@ object VideoProcessor {
         // OpenGL ES の用意をする
         val akariGraphicsProcessor = AkariGraphicsProcessor(
             outputSurface = akariVideoEncoder.getInputSurface(),
-            isEnableTenBitHdr = true,
+            isEnableTenBitHdr = when (val codecContainerType = encoderParams.codecContainerType) {
+                is EncoderParams.CodecContainerType.Companion.AV1_AAC_MPEG4 -> codecContainerType.isEnableTenBitHdr
+                is EncoderParams.CodecContainerType.Companion.HEVC_AAC_MPEG4 -> codecContainerType.isEnableTenBitHdr
+                EncoderParams.CodecContainerType.Companion.AV1_OPUS_WEBM -> false
+                EncoderParams.CodecContainerType.Companion.AVC_AAC_MPEG4 -> false
+                EncoderParams.CodecContainerType.Companion.VP9_OPUS_WEBM -> false
+            },
             width = encoderParams.videoWidth,
             height = encoderParams.videoHeight
         ).apply { prepare() }

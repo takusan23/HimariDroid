@@ -38,9 +38,28 @@ private data class CodecDescription(
     val description: String
 )
 
+private val EncoderParams.CodecContainerType.titleResId: Int
+    get() = when (this) {
+        is EncoderParams.CodecContainerType.Companion.AV1_AAC_MPEG4 -> R.string.codec_select_sheet_av1_mp4_title
+        EncoderParams.CodecContainerType.Companion.AV1_OPUS_WEBM -> R.string.codec_select_sheet_av1_webm_title
+        EncoderParams.CodecContainerType.Companion.AVC_AAC_MPEG4 -> R.string.codec_select_sheet_avc_mp4_title
+        is EncoderParams.CodecContainerType.Companion.HEVC_AAC_MPEG4 -> R.string.codec_select_sheet_hevc_mp4_title
+        EncoderParams.CodecContainerType.Companion.VP9_OPUS_WEBM -> R.string.codec_select_sheet_vp9_webm_title
+    }
+
+private val EncoderParams.CodecContainerType.descriptionResId: Int
+    get() = when (this) {
+        is EncoderParams.CodecContainerType.Companion.AV1_AAC_MPEG4 -> R.string.codec_select_sheet_av1_mp4_description
+        EncoderParams.CodecContainerType.Companion.AV1_OPUS_WEBM -> R.string.codec_select_sheet_av1_webm_description
+        EncoderParams.CodecContainerType.Companion.AVC_AAC_MPEG4 -> R.string.codec_select_sheet_avc_mp4_description
+        is EncoderParams.CodecContainerType.Companion.HEVC_AAC_MPEG4 -> R.string.codec_select_sheet_hevc_mp4_description
+        EncoderParams.CodecContainerType.Companion.VP9_OPUS_WEBM -> R.string.codec_select_sheet_vp9_webm_description
+    }
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CodecSelectSheet(
+fun CodecSelectBottomSheetMenuBox(
     modifier: Modifier = Modifier,
     codecContainerType: EncoderParams.CodecContainerType,
     onSelectCodec: (EncoderParams.CodecContainerType) -> Unit
@@ -50,32 +69,18 @@ fun CodecSelectSheet(
     // コーデック
     val codecDescriptionList = remember {
         listOf(
+            EncoderParams.CodecContainerType.Companion.AVC_AAC_MPEG4,
+            EncoderParams.CodecContainerType.Companion.HEVC_AAC_MPEG4(isEnableTenBitHdr = false),
+            EncoderParams.CodecContainerType.Companion.AV1_AAC_MPEG4(isEnableTenBitHdr = false),
+            EncoderParams.CodecContainerType.Companion.VP9_OPUS_WEBM,
+            EncoderParams.CodecContainerType.Companion.AV1_OPUS_WEBM
+        ).map {
             CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
-                title = context.getString(R.string.codec_select_sheet_avc_mp4_title),
-                description = context.getString(R.string.codec_select_sheet_avc_mp4_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.HEVC_AAC_MPEG4,
-                title = context.getString(R.string.codec_select_sheet_hevc_mp4_title),
-                description = context.getString(R.string.codec_select_sheet_hevc_mp4_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.AV1_AAC_MPEG4,
-                title = context.getString(R.string.codec_select_sheet_av1_mp4_title),
-                description = context.getString(R.string.codec_select_sheet_av1_mp4_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.VP9_OPUS_WEBM,
-                title = context.getString(R.string.codec_select_sheet_vp9_webm_title),
-                description = context.getString(R.string.codec_select_sheet_vp9_webm_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.AV1_OPUS_WEBM,
-                title = context.getString(R.string.codec_select_sheet_av1_webm_title),
-                description = context.getString(R.string.codec_select_sheet_av1_webm_description)
+                codecContainerType = it,
+                title = context.getString(it.titleResId),
+                description = context.getString(it.descriptionResId)
             )
-        )
+        }
     }
 
     // コーデック選択ボトムシート
@@ -105,7 +110,7 @@ fun CodecSelectSheet(
                             },
                             shape = when (index) {
                                 0 -> RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 5.dp, bottomEnd = 5.dp)
-                                EncoderParams.CodecContainerType.entries.size - 1 -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
+                                codecDescriptionList.size - 1 -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
                                 else -> RoundedCornerShape(5.dp)
                             }
                         ) {
@@ -150,7 +155,7 @@ fun CodecSelectSheet(
             modifier = Modifier
                 .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth(),
-            value = codecContainerType.name,
+            value = stringResource(id = codecContainerType.titleResId),
             onValueChange = { /* do nothing */ },
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isOpen.value) },

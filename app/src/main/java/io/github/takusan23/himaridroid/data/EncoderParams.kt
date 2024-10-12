@@ -16,31 +16,57 @@ data class EncoderParams(
     val fileNameAndExtension: String
         get() = "${fileNameWithoutExtension}.${codecContainerType.containerType.extension}"
 
-    /** コーデックとコンテナの種類 */
-    enum class CodecContainerType(val videoCodec: String, val audioCodec: String, val containerType: ContainerType) {
-        /** AVC / AAC / mp4 */
-        AVC_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_AVC, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4),
-
-        /** HEVC / AAC / mp4 */
-        HEVC_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_HEVC, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4),
-
-        /** AV1 / AAC / mp4 */
-        AV1_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_AV1, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4),
-
-        /** VP9 / Opus / WebM */
-        VP9_OPUS_WEBM(MediaFormat.MIMETYPE_VIDEO_VP9, MediaFormat.MIMETYPE_AUDIO_OPUS, ContainerType.WEBM),
-
-        /**
-         * AV1 / Opus / WebM
-         * WebM コンテナに AV1 を入れるのは仕様にないみたいなのですが、ブラウザ系がやってるので実質対応みたいになっているらしい？
-         */
-        AV1_OPUS_WEBM(MediaFormat.MIMETYPE_VIDEO_AV1, MediaFormat.MIMETYPE_AUDIO_OPUS, ContainerType.WEBM);
-    }
-
     /** コンテナ */
     enum class ContainerType(val extension: String) {
         MPEG_4("mp4"),
         WEBM("webm");
     }
 
+    /** 出力形式。コーデックとコンテナフォーマットのデータ */
+    sealed interface CodecContainerType {
+        val videoCodec: String
+        val audioCodec: String
+        val containerType: ContainerType
+
+        companion object {
+
+            /** AVC / AAC / mp4 */
+            object AVC_AAC_MPEG4 : CodecContainerType {
+                override val videoCodec: String = MediaFormat.MIMETYPE_VIDEO_AVC
+                override val audioCodec: String = MediaFormat.MIMETYPE_AUDIO_AAC
+                override val containerType: ContainerType = ContainerType.MPEG_4
+            }
+
+            /** HEVC / AAC / mp4 */
+            data class HEVC_AAC_MPEG4(val isEnableTenBitHdr: Boolean) : CodecContainerType {
+                override val videoCodec: String = MediaFormat.MIMETYPE_VIDEO_HEVC
+                override val audioCodec: String = MediaFormat.MIMETYPE_AUDIO_AAC
+                override val containerType: ContainerType = ContainerType.MPEG_4
+            }
+
+            /** AV1 / AAC / mp4 */
+            data class AV1_AAC_MPEG4(val isEnableTenBitHdr: Boolean) : CodecContainerType {
+                override val videoCodec: String = MediaFormat.MIMETYPE_VIDEO_HEVC
+                override val audioCodec: String = MediaFormat.MIMETYPE_AUDIO_AAC
+                override val containerType: ContainerType = ContainerType.MPEG_4
+            }
+
+            /** VP9 / Opus / WebM */
+            data object VP9_OPUS_WEBM : CodecContainerType {
+                override val videoCodec: String = MediaFormat.MIMETYPE_VIDEO_AV1
+                override val audioCodec: String = MediaFormat.MIMETYPE_AUDIO_OPUS
+                override val containerType: ContainerType = ContainerType.WEBM
+            }
+
+            /**
+             * AV1 / Opus / WebM
+             * WebM コンテナに AV1 を入れるのは仕様にないみたいなのですが、ブラウザ系がやってるので実質対応みたいになっているらしい？
+             */
+            data object AV1_OPUS_WEBM : CodecContainerType {
+                override val videoCodec: String = MediaFormat.MIMETYPE_VIDEO_AV1
+                override val audioCodec: String = MediaFormat.MIMETYPE_AUDIO_OPUS
+                override val containerType: ContainerType = ContainerType.WEBM
+            }
+        }
+    }
 }

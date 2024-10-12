@@ -64,7 +64,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
             videoHeight = videoFormat.videoHeight,
             bitRate = videoFormat.bitRate,
             frameRate = videoFormat.frameRate,
-            codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4
+            codecContainerType = EncoderParams.CodecContainerType.Companion.AVC_AAC_MPEG4
         )
     }
 
@@ -106,15 +106,15 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
         // TODO 音声コーデックは見てねえわ
         val codecContainerType = when (container) {
             MIME_TYPE_MP4 -> when (codec) {
-                MediaFormat.MIMETYPE_VIDEO_AVC -> EncoderParams.CodecContainerType.AVC_AAC_MPEG4
-                MediaFormat.MIMETYPE_VIDEO_HEVC -> EncoderParams.CodecContainerType.HEVC_AAC_MPEG4
-                MediaFormat.MIMETYPE_VIDEO_AV1 -> EncoderParams.CodecContainerType.AV1_AAC_MPEG4
+                MediaFormat.MIMETYPE_VIDEO_AVC -> EncoderParams.CodecContainerType.Companion.AVC_AAC_MPEG4
+                MediaFormat.MIMETYPE_VIDEO_HEVC -> EncoderParams.CodecContainerType.Companion.HEVC_AAC_MPEG4(isEnableTenBitHdr = false)
+                MediaFormat.MIMETYPE_VIDEO_AV1 -> EncoderParams.CodecContainerType.Companion.AV1_AAC_MPEG4(isEnableTenBitHdr = false)
                 else -> null
             }
 
             MIME_TYPE_WEBM -> when (codec) {
-                MediaFormat.MIMETYPE_VIDEO_VP9 -> EncoderParams.CodecContainerType.VP9_OPUS_WEBM
-                MediaFormat.MIMETYPE_VIDEO_AV1 -> EncoderParams.CodecContainerType.AV1_OPUS_WEBM
+                MediaFormat.MIMETYPE_VIDEO_VP9 -> EncoderParams.CodecContainerType.Companion.VP9_OPUS_WEBM
+                MediaFormat.MIMETYPE_VIDEO_AV1 -> EncoderParams.CodecContainerType.Companion.AV1_OPUS_WEBM
                 else -> null
             }
 
