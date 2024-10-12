@@ -13,6 +13,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -147,7 +148,7 @@ fun CodecSelectSheet(
     ) {
         OutlinedTextField(
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth(),
             value = codecContainerType.name,
             onValueChange = { /* do nothing */ },
