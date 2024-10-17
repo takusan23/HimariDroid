@@ -3,7 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- FOREGROUND_SERVICE_MEDIA_PROCESSING は Android 15 から導入された。Android 14 では引き続き SPECIAL_USE を利用するため、maxSdkVersion -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"
+        android:maxSdkVersion="34" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
 
     <application
         android:allowBackup="true"
@@ -33,11 +38,11 @@
             android:name=".EncoderService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="specialUse">
+            android:foregroundServiceType="specialUse|mediaProcessing">
 
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Encode video in Background." />
+                android:value="Encode video in Background. However, if Android 15 And later, use MEDIA_PROCESSING service type." />
         </service>
 
     </application>

@@ -8,6 +8,7 @@ import android.content.ServiceConnection
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationChannelCompat
@@ -57,6 +58,12 @@ class EncoderService : Service() {
         }
     }
 
+    // MEDIA_PROCESSING は 6 時間までしか動かせないらしい。アプリを表示させるとリセットされる模様。
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        super.onTimeout(startId, fgsType)
+        stopSelf()
+    }
+
     /** エンコードを開始する */
     fun startEncode(
         inputUri: Uri,
@@ -94,6 +101,7 @@ class EncoderService : Service() {
                 // コルーチンキャンセル時・エンコーダー終了時
                 _isEncoding.value = false
                 stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
             }
         }
     }
@@ -116,13 +124,26 @@ class EncoderService : Service() {
             setContentText("${getString(R.string.encoder_service_notification_description)} $currentPositionSec ${getString(R.string.seconds)}")
             setSmallIcon(R.drawable.android_himari_droid)
         }.build()
+
         // 一応 compat で
-        ServiceCompat.startForeground(
-            this,
-            NOTIFICATION_ID,
-            notification,
+        // MEDIA_PROCESSING は Android 15 で追加されたため、14 の場合は SPECIAL_USE を使う。
+        val foregroundServiceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING
+        } else {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-        )
+        }
+
+        // TODO ServiceCompat.startForeground が targetSdk=35 に対応したら Compat だけ使う
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            startForeground(NOTIFICATION_ID, notification, foregroundServiceType)
+        } else {
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                notification,
+                foregroundServiceType
+            )
+        }
     }
 
     private class LocalBinder(service: EncoderService) : Binder() {
