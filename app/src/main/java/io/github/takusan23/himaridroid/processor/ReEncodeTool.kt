@@ -72,10 +72,13 @@ object ReEncodeTool {
         val resultFile = context.getExternalFilesDir(null)!!.resolve(encoderParams.fileNameAndExtension)
         val mediaMuxer = MediaMuxer(resultFile.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
 
-        // 音声トラックを追加
-        // TODO 音声トラックがない場合
-        val (audioMediaExtractor, audioFormat) = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.AUDIO)
-        val audioIndex = mediaMuxer.addTrack(audioFormat)
+        // 音声トラックを追加。音声トラックがない場合は null
+        val audioTrackPairOrNull = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.AUDIO)
+        var audioTrackIndexOrNull: Int? = null
+        // あれば MediaMuxer へ追加
+        if (audioTrackPairOrNull != null) {
+            audioTrackIndexOrNull = mediaMuxer.addTrack(audioTrackPairOrNull.second)
+        }
 
         // 映像トラックを追加してエンコードする
         var videoIndex = -1
@@ -95,7 +98,7 @@ object ReEncodeTool {
         )
 
         // 終わったら音声
-        audioMediaExtractor.also { extractor ->
+        audioTrackPairOrNull?.also { (extractor, _) ->
             val byteBuffer = ByteBuffer.allocate(8192)
             val bufferInfo = MediaCodec.BufferInfo()
             // データが無くなるまで回す
@@ -110,7 +113,7 @@ object ReEncodeTool {
                 // 書き込む
                 bufferInfo.presentationTimeUs = extractor.sampleTime
                 bufferInfo.flags = extractor.sampleFlags // Lintがキレるけど黙らせる
-                mediaMuxer.writeSampleData(audioIndex, byteBuffer, bufferInfo)
+                mediaMuxer.writeSampleData(audioTrackIndexOrNull!!, byteBuffer, bufferInfo)
                 // 次のデータに進める
                 extractor.advance()
             }
@@ -231,8 +234,10 @@ object ReEncodeTool {
         onOutputFormat: suspend (MediaFormat) -> Unit,
         onOutputData: suspend (ByteBuffer, MediaCodec.BufferInfo) -> Unit
     ) {
-        val (videoExtractor, inputAudioFormat) = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.AUDIO)
+        // 音声トラックがない場合は何もせず return
+        val (videoExtractor, inputAudioFormat) = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.AUDIO) ?: return
         videoExtractor.release()
+
         val rawFile = tempFolder.resolve(TEMP_AUDIO_RAW_FILE)
         val upsamplingFile = tempFolder.resolve(TEMP_AUDIO_UPSAMPLING_FILE)
 

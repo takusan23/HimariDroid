@@ -82,7 +82,8 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
 
     /** 解析できない場合は null */
     private suspend fun extractInputVideoFormat(uri: Uri): VideoFormat? = withContext(Dispatchers.IO) {
-        val (extractor, mediaFormat) = MediaTool.createMediaExtractor(context, uri, MediaTool.Track.VIDEO)
+        // 流石に映像トラックがないってことは
+        val (extractor, mediaFormat) = MediaTool.createMediaExtractor(context, uri, MediaTool.Track.VIDEO) ?: return@withContext null
 
         // コーデックとコンテナを探す
         // 拡張子は嘘をつく可能性があるので、実際のバイナリから見る
