@@ -1,153 +1,118 @@
 package io.github.takusan23.himaridroid.processor.video
 
+import android.content.Context
 import android.media.MediaCodec
-import android.media.MediaCodecInfo
-import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.net.Uri
+import io.github.takusan23.akaricore.common.toAkariCoreInputOutputData
+import io.github.takusan23.akaricore.graphics.AkariGraphicsProcessor
+import io.github.takusan23.akaricore.graphics.AkariGraphicsSurfaceTexture
+import io.github.takusan23.akaricore.graphics.mediacodec.AkariVideoDecoder
 import io.github.takusan23.himaridroid.data.EncoderParams
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
+import io.github.takusan23.himaridroid.processor.muxer.VideoEncoderMuxerInterface
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 
+/** akaricore とかいう MediaCodec を代わりに叩くライブラリを使い再エンコードを行う */
 object VideoProcessor {
-
-    /** MediaCodec タイムアウト */
-    private const val TIMEOUT_US = 10_000L
 
     /** 再エンコードする */
     suspend fun start(
-        mediaExtractor: MediaExtractor,
-        inputMediaFormat: MediaFormat,
+        context: Context,
+        inputUri: Uri,
         encoderParams: EncoderParams,
-        onProgressCurrentPositionMs: (Long) -> Unit,
         onOutputFormat: suspend (MediaFormat) -> Unit,
-        onOutputData: suspend (ByteBuffer, MediaCodec.BufferInfo) -> Unit
-    ) = withContext(Dispatchers.Default) {
+        onOutputData: suspend (ByteBuffer, MediaCodec.BufferInfo) -> Unit,
+        onProgressCurrentPositionMs: (currentPositionMs: Long) -> Unit
+    ) {
 
-        // エンコーダーにセットするMediaFormat
-        val videoMediaFormat = MediaFormat.createVideoFormat(encoderParams.codecContainerType.videoCodec, encoderParams.videoWidth, encoderParams.videoHeight).apply {
-            setInteger(MediaFormat.KEY_BIT_RATE, encoderParams.bitRate)
-            setInteger(MediaFormat.KEY_FRAME_RATE, encoderParams.frameRate)
-            setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1)
-            setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
+        // エンコーダー。中身は MediaCodec
+        val akariVideoEncoder = VideoEncoderV2().apply {
+            prepare(
+                muxerInterface = object : VideoEncoderMuxerInterface {
+                    override suspend fun onOutputFormat(mediaFormat: MediaFormat) {
+                        onOutputFormat(mediaFormat)
+                    }
+
+                    override suspend fun onOutputData(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
+                        onOutputData(byteBuffer, bufferInfo)
+                    }
+
+                    override suspend fun stop() {
+                        // do nothing
+                    }
+                },
+                outputVideoWidth = encoderParams.videoWidth,
+                outputVideoHeight = encoderParams.videoHeight,
+                frameRate = encoderParams.frameRate,
+                bitRate = encoderParams.bitRate,
+                keyframeInterval = 1,
+                codecName = encoderParams.codecContainerType.videoCodec,
+                tenBitHdrParametersOrNullSdr = null // TODO 10Bit HDR 対応。またトーンマッピングで SDR も考慮？
+            )
         }
 
-        // エンコード用 MediaCodec
-        val encodeMediaCodec = MediaCodec.createEncoderByType(encoderParams.codecContainerType.videoCodec).apply {
-            configure(videoMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+        // OpenGL ES で描画する基盤
+        // デコーダーの出力 Surface にこれを指定して、エンコーダーに OpenGL ES で描画した映像データが Surface 経由で行くようにする
+        // 本当は OpenGL ES なんて使わずともデコーダーでデコードした映像フレームをエンコーダーに渡すだけでいいはずなのだが、OpenGL ES を経由しておくのが安牌？
+        val akariGraphicsProcessor = AkariGraphicsProcessor(
+            outputSurface = akariVideoEncoder.getInputSurface(),
+            width = encoderParams.videoWidth,
+            height = encoderParams.videoHeight,
+            isEnableTenBitHdr = false // TODO 10Bit HDR 対応
+        ).apply { prepare() }
+
+        // デコーダー
+        // デコードした映像の向き先は OpenGL ES のテクスチャ（SurfaceTexture）
+        val akariGraphicsSurfaceTexture = akariGraphicsProcessor.genTextureId { texId -> AkariGraphicsSurfaceTexture(texId) }
+        val akariVideoDecoder = AkariVideoDecoder().apply {
+            prepare(
+                input = inputUri.toAkariCoreInputOutputData(context),
+                outputSurface = akariGraphicsSurfaceTexture.surface
+            )
         }
 
-        // エンコーダーの Surface を取得
-        // デコーダーの出力 Surface にこれを指定して、エンコーダーに映像データが Surface 経由で行くようにする
-        // なんだけど、直接 Surface を渡すだけではなくなんか OpenGL を利用しないと正しく描画できないみたい
-        val codecInputSurface = InputSurface(encodeMediaCodec.createInputSurface(), TextureRenderer())
-        codecInputSurface.makeCurrent()
-        codecInputSurface.createRender()
+        coroutineScope {
 
-        // デコード用 MediaCodec
-        val decodeMediaCodec = MediaCodec.createDecoderByType(inputMediaFormat.getString(MediaFormat.KEY_MIME)!!).apply {
-            // デコード時は MediaExtractor の MediaFormat で良さそう
-            configure(inputMediaFormat, codecInputSurface.drawSurface, null, 0)
-        }
+            // エンコーダー開始
+            val encoderJob = launch { akariVideoEncoder.start() }
 
-        // 処理を始める
-        encodeMediaCodec.start()
-        decodeMediaCodec.start()
-        val bufferInfo = MediaCodec.BufferInfo()
-        var isOutputEol = false
-        var isInputEol = false
+            // 描画も開始
+            val graphicsJob = launch {
+                try {
+                    val loopContinueData = AkariGraphicsProcessor.LoopContinueData(isRequestNextFrame = true, currentFrameMs = 0)
 
-        try {
-            while (!isOutputEol) {
+                    // 1フレーム分のミリ秒と再生位置
+                    val oneFrameMs = 1_000 / encoderParams.frameRate
+                    var currentPositionMs = 0L
 
-                // コルーチンキャンセル時は強制終了
-                if (!isActive) break
+                    akariGraphicsProcessor.drawLoop {
+                        // シークして動画フレームを描画する
+                        val isSuccessDecodeFrame = akariVideoDecoder.seekTo(currentPositionMs)
+                        drawSurfaceTexture(akariGraphicsSurfaceTexture)
+                        onProgressCurrentPositionMs(currentPositionMs)
 
-                // デコーダーに渡す部分
-                if (!isInputEol) {
-                    val inputBufferId = decodeMediaCodec.dequeueInputBuffer(TIMEOUT_US)
-                    if (inputBufferId >= 0) {
-                        val inputBuffer = decodeMediaCodec.getInputBuffer(inputBufferId)!!
-                        val size = mediaExtractor.readSampleData(inputBuffer, 0)
-                        if (size > 0) {
-                            // デコーダーへ流す
-                            decodeMediaCodec.queueInputBuffer(inputBufferId, 0, size, mediaExtractor.sampleTime, 0)
-                            mediaExtractor.advance()
-                        } else {
-                            // もう無い
-                            decodeMediaCodec.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-                            // 終了
-                            isInputEol = true
-                        }
+                        // 次フレームがあるかとループ続行か
+                        loopContinueData.currentFrameMs = currentPositionMs
+                        loopContinueData.isRequestNextFrame = isSuccessDecodeFrame
+
+                        // 動画時間を進める
+                        currentPositionMs += oneFrameMs
+
+                        loopContinueData
                     }
-                }
-
-                // エンコーダーから映像を受け取る部分
-                // 二重 while になっているのは、デコーダーに渡したデータが一回の処理では全て受け取れないので、何回か繰り返す
-                var decoderOutputAvailable = true
-                while (decoderOutputAvailable) {
-                    // Surface経由でデータを貰って保存する
-                    val outputBufferId = encodeMediaCodec.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
-                    if (outputBufferId >= 0) {
-                        val encodedData = encodeMediaCodec.getOutputBuffer(outputBufferId)!!
-                        if (bufferInfo.size > 1) {
-                            if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG == 0) {
-                                // MediaMuxer へ addTrack した後
-                                onOutputData(encodedData, bufferInfo)
-                                // 進捗更新
-                                onProgressCurrentPositionMs(mediaExtractor.sampleTime / 1_000)
-                            }
-                        }
-                        isOutputEol = bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0
-                        encodeMediaCodec.releaseOutputBuffer(outputBufferId, false)
-                    } else if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                        // MediaMuxer へ映像トラックを追加するのはこのタイミングで行う
-                        // このタイミングでやると固有のパラメーターがセットされた MediaFormat が手に入る(csd-0 とか)
-                        // 映像がぶっ壊れている場合（緑で塗りつぶされてるとか）は多分このあたりが怪しい
-                        val newFormat = encodeMediaCodec.outputFormat
-                        onOutputFormat(newFormat)
-                    }
-                    if (outputBufferId != MediaCodec.INFO_TRY_AGAIN_LATER) {
-                        continue
-                    }
-
-                    // Surfaceへレンダリングする。そしてOpenGLでゴニョゴニョする
-                    val inputBufferId = decodeMediaCodec.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
-                    if (inputBufferId == MediaCodec.INFO_TRY_AGAIN_LATER) {
-                        decoderOutputAvailable = false
-                    } else if (inputBufferId >= 0) {
-                        val doRender = bufferInfo.size != 0
-                        decodeMediaCodec.releaseOutputBuffer(inputBufferId, doRender)
-                        // OpenGL を経由しないとエンコーダーに映像が渡らないことがあった
-                        if (doRender) {
-                            var errorWait = false
-                            try {
-                                codecInputSurface.awaitNewImage()
-                            } catch (e: Exception) {
-                                errorWait = true
-                            }
-                            if (!errorWait) {
-                                codecInputSurface.drawImage()
-                                codecInputSurface.setPresentationTime(bufferInfo.presentationTimeUs * 1000)
-                                codecInputSurface.swapBuffers()
-                            }
-                        }
-                        if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
-                            decoderOutputAvailable = false
-                            encodeMediaCodec.signalEndOfInputStream()
-                        }
-                    }
+                } finally {
+                    akariGraphicsProcessor.destroy()
+                    akariVideoDecoder.destroy()
+                    akariGraphicsSurfaceTexture.destroy()
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            // リソース開放
-            encodeMediaCodec.release()
-            decodeMediaCodec.release()
-            codecInputSurface.release()
-            mediaExtractor.release()
+
+            // 描画が終わるまで待ってその後エンコーダーも止める
+            graphicsJob.join()
+            encoderJob.cancelAndJoin()
         }
     }
 

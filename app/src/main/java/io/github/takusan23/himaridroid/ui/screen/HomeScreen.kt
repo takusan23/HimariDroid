@@ -49,7 +49,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val inputVideoFormat = viewModel.inputVideoFormat.collectAsState()
     val encoderParams = viewModel.encoderParams.collectAsState()
@@ -162,8 +162,8 @@ private fun EncoderScreen(
         }
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier.padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = paddingValues
         ) {
 
             // 動画選択

@@ -3,18 +3,14 @@ package io.github.takusan23.himaridroid.processor.audio
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
+import io.github.takusan23.akaricore.audio.AkariCoreAudioProperties
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 
-/**
- * 音声エンコーダー
- * MediaCodecを使いやすくしただけ
- *
- * 生（意味深）の音声（PCM）送られてくるので、 AAC / Opus にエンコードして圧縮する。
- */
-class AudioEncoder {
+// TODO akaricore:5.0.0-alpha02 でこれを入れる
+class AudioEncoderV2 {
 
     /** MediaCodec エンコーダー */
     private var mediaCodec: MediaCodec? = null
@@ -30,7 +26,7 @@ class AudioEncoder {
      */
     fun prepareEncoder(
         codec: String = MediaFormat.MIMETYPE_AUDIO_AAC,
-        sampleRate: Int = 44_100,
+        sampleRate: Int = AkariCoreAudioProperties.SAMPLING_RATE,
         channelCount: Int = 2,
         bitRate: Int = 192_000,
     ) {
@@ -57,10 +53,12 @@ class AudioEncoder {
         onOutputFormatAvailable: suspend (MediaFormat) -> Unit,
     ) = withContext(Dispatchers.Default) {
         val bufferInfo = MediaCodec.BufferInfo()
+        // TODO エンコードも最後途切れている可能性がある。fun test_モノラル音声をステレオ音声にできる() 参照。MediaCodec 非同期にしたい。
+        var isRunning = isActive
         mediaCodec!!.start()
 
         try {
-            while (isActive) {
+            while (isRunning) {
                 // もし -1 が返ってくれば configure() が間違ってる
                 val inputBufferId = mediaCodec!!.dequeueInputBuffer(TIMEOUT_US)
                 if (inputBufferId >= 0) {
@@ -77,14 +75,15 @@ class AudioEncoder {
                         mediaCodec!!.queueInputBuffer(inputBufferId, 0, readByteSize, System.nanoTime() / 1000, 0)
                     } else {
                         // もうない！
-                        break
+                        isRunning = false
                     }
                 }
                 // 出力
                 val outputBufferId = mediaCodec!!.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
                 if (outputBufferId >= 0) {
                     val outputBuffer = mediaCodec!!.getOutputBuffer(outputBufferId)!!
-                    if (bufferInfo.size > 1) {
+                    // size > 0 とか BUFFER_FLAG_CODEC_CONFIG を消すと、MediaMuxer 周りで時間がおかしくなる
+                    if (bufferInfo.size > 0) {
                         if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG == 0) {
                             // ファイルに書き込む...
                             onOutputBufferAvailable(outputBuffer, bufferInfo)
