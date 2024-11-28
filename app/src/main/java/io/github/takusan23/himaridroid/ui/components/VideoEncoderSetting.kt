@@ -22,12 +22,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.himaridroid.R
 import io.github.takusan23.himaridroid.data.EncoderParams
+import io.github.takusan23.himaridroid.data.VideoFormat
 import io.github.takusan23.himaridroid.ui.tool.NumberFormat
 
 @Composable
 fun VideoEncoderSetting(
     modifier: Modifier = Modifier,
     encoderParams: EncoderParams,
+    tenBitHdrInfo: VideoFormat.TenBitHdrInfo?,
     onReset: () -> Unit,
     onUpdate: (EncoderParams) -> Unit
 ) {
@@ -64,9 +66,13 @@ fun VideoEncoderSetting(
             // コーデック選択ボトムシート
             CodecSelectSheet(
                 modifier = Modifier.fillMaxWidth(),
-                codecContainerType = encoderParams.codecContainerType,
-                onSelectCodec = { type ->
-                    update { it.copy(codecContainerType = type) }
+                onSelectCodec = { type -> update { it.copy(codecContainerType = type) } },
+                // TODO 10Bit HDR の場合は HEVC 固定にしている
+                isEnable = encoderParams.tenBitHdrOptionOrNull?.mode != EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP,
+                codecContainerType = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
+                    EncoderParams.CodecContainerType.HEVC_AAC_MPEG4
+                } else {
+                    encoderParams.codecContainerType
                 }
             )
 
@@ -89,16 +95,29 @@ fun VideoEncoderSetting(
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 NumberInputField(
                     modifier = Modifier.weight(1f),
-                    value = encoderParams.videoHeight,
-                    onValueChange = { bitRate -> update { it.copy(videoHeight = bitRate) } },
-                    label = stringResource(id = R.string.video_encoder_setting_height)
+                    value = encoderParams.videoWidth,
+                    onValueChange = { bitRate -> update { it.copy(videoWidth = bitRate) } },
+                    label = stringResource(id = R.string.video_encoder_setting_width)
                 )
 
                 NumberInputField(
                     modifier = Modifier.weight(1f),
-                    value = encoderParams.videoWidth,
-                    onValueChange = { bitRate -> update { it.copy(videoWidth = bitRate) } },
-                    label = stringResource(id = R.string.video_encoder_setting_width)
+                    value = encoderParams.videoHeight,
+                    onValueChange = { bitRate -> update { it.copy(videoHeight = bitRate) } },
+                    label = stringResource(id = R.string.video_encoder_setting_height)
+                )
+            }
+
+            // 10Bit HDR 動画のときのみ
+            if (encoderParams.tenBitHdrOptionOrNull != null) {
+                TenBitHdrOptionMenu(
+                    modifier = Modifier.fillMaxWidth(),
+                    currentTenBitHdrMode = encoderParams.tenBitHdrOptionOrNull.mode,
+                    onTenBitHdrModeChange = { mode ->
+                        update {
+                            it.copy(tenBitHdrOptionOrNull = encoderParams.tenBitHdrOptionOrNull.copy(mode = mode))
+                        }
+                    }
                 )
             }
 
@@ -115,7 +134,7 @@ fun VideoEncoderSetting(
 
 /** Suffix 付き文字列 TextField */
 @Composable
-fun SuffixStringTextField(
+private fun SuffixStringTextField(
     modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,

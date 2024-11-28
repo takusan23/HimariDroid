@@ -1,5 +1,6 @@
 package io.github.takusan23.himaridroid.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
@@ -23,65 +25,43 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.himaridroid.R
 import io.github.takusan23.himaridroid.data.EncoderParams
 
 /** 説明 */
-private data class CodecDescription(
-    val codecContainerType: EncoderParams.CodecContainerType,
+private data class TenBitHdrModeMenuDescription(
+    val mode: EncoderParams.TenBitHdrOption.TenBitHdrMode,
     val title: String,
     val description: String
 )
 
+/** 10Bit HDR 選択シート TODO ローカライズ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CodecSelectSheet(
+fun TenBitHdrOptionMenu(
     modifier: Modifier = Modifier,
-    isEnable: Boolean = true,
-    codecContainerType: EncoderParams.CodecContainerType,
-    onSelectCodec: (EncoderParams.CodecContainerType) -> Unit
+    currentTenBitHdrMode: EncoderParams.TenBitHdrOption.TenBitHdrMode,
+    onTenBitHdrModeChange: (EncoderParams.TenBitHdrOption.TenBitHdrMode) -> Unit
 ) {
-    val context = LocalContext.current
 
-    // コーデック
-    val codecDescriptionList = remember {
-        listOf(
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
-                title = context.getString(R.string.codec_select_sheet_avc_mp4_title),
-                description = context.getString(R.string.codec_select_sheet_avc_mp4_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.HEVC_AAC_MPEG4,
-                title = context.getString(R.string.codec_select_sheet_hevc_mp4_title),
-                description = context.getString(R.string.codec_select_sheet_hevc_mp4_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.AV1_AAC_MPEG4,
-                title = context.getString(R.string.codec_select_sheet_av1_mp4_title),
-                description = context.getString(R.string.codec_select_sheet_av1_mp4_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.VP9_OPUS_WEBM,
-                title = context.getString(R.string.codec_select_sheet_vp9_webm_title),
-                description = context.getString(R.string.codec_select_sheet_vp9_webm_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.AV1_OPUS_WEBM,
-                title = context.getString(R.string.codec_select_sheet_av1_webm_title),
-                description = context.getString(R.string.codec_select_sheet_av1_webm_description)
-            )
+    val tenBitHdrModeMenu = listOf(
+        TenBitHdrModeMenuDescription(
+            mode = EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP,
+            title = "HDR を維持する",
+            description = "HDR のまま変換します。今のところコーデックは HEVC(H.265) に限定されます。"
+        ),
+        TenBitHdrModeMenuDescription(
+            mode = EncoderParams.TenBitHdrOption.TenBitHdrMode.TO_SDR,
+            title = "SDR に変換する",
+            description = "SDR に変換します。動画の色が白っぽくなるので注意です。"
         )
-    }
+    )
 
-    // コーデック選択ボトムシート
+    // 10Bit HDR 選択ボトムシート
     val isOpen = remember { mutableStateOf(false) }
-
     if (isOpen.value) {
         ModalBottomSheet(onDismissRequest = { isOpen.value = false }) {
 
@@ -91,17 +71,17 @@ fun CodecSelectSheet(
             ) {
 
                 Text(
-                    text = stringResource(id = R.string.code_select_sheet_title),
+                    text = "10 ビット HDR 動画の変換メニュー",
                     fontSize = 20.sp
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    codecDescriptionList.forEachIndexed { index, codecDescription ->
+                    tenBitHdrModeMenu.forEachIndexed { index, menu ->
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             color = MaterialTheme.colorScheme.secondaryContainer,
                             onClick = {
-                                onSelectCodec(codecDescription.codecContainerType)
+                                onTenBitHdrModeChange(menu.mode)
                                 isOpen.value = false
                             },
                             shape = when (index) {
@@ -117,15 +97,15 @@ fun CodecSelectSheet(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = codecDescription.title,
+                                        text = menu.title,
                                         fontSize = 20.sp
                                     )
                                     Text(
-                                        text = codecDescription.description,
+                                        text = menu.description,
                                         fontSize = 14.sp
                                     )
                                 }
-                                if (codecContainerType == codecDescription.codecContainerType) {
+                                if (menu.mode == currentTenBitHdrMode) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.done_24px),
                                         contentDescription = null
@@ -142,22 +122,41 @@ fun CodecSelectSheet(
         }
     }
 
-    ExposedDropdownMenuBox(
+    Column(
         modifier = modifier,
-        expanded = isOpen.value,
-        onExpandedChange = { isOpen.value = !isOpen.value }
+        verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth(),
-            value = codecContainerType.name,
-            onValueChange = { /* do nothing */ },
-            readOnly = true,
-            enabled = isEnable,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isOpen.value) },
-            label = { Text(text = stringResource(id = R.string.code_select_sheet_select_button)) }
-        )
+
+        ExposedDropdownMenuBox(
+            modifier = Modifier.fillMaxWidth(),
+            expanded = isOpen.value,
+            onExpandedChange = { isOpen.value = !isOpen.value }
+        ) {
+            OutlinedTextField(
+                modifier = Modifier
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth(),
+                onValueChange = { /* do nothing */ },
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isOpen.value) },
+                value = tenBitHdrModeMenu[currentTenBitHdrMode.ordinal].title,
+                label = { Text(text = "10 ビット HDR 動画の変換メニュー") }
+            )
+        }
+
+        Row(
+            modifier = Modifier.border(
+                width = 1.dp,
+                color = LocalContentColor.current,
+                shape = RoundedCornerShape(5.dp)
+            )
+        ) {
+            Text(
+                modifier = Modifier.padding(5.dp),
+                text = "10 ビット HDR の動画の再エンコードにも対応しました。",
+                fontSize = 14.sp
+            )
+        }
     }
 
 }

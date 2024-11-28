@@ -184,6 +184,7 @@ private fun EncoderScreen(
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
                             .fillMaxWidth(),
+                        tenBitHdrInfo = inputVideoFormat?.tenBitHdrInfo,
                         encoderParams = encoderParams,
                         onReset = onResetInitialEncoderParams,
                         onUpdate = onUpdateEncoderParams

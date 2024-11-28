@@ -49,8 +49,19 @@ object VideoProcessor {
                 frameRate = encoderParams.frameRate,
                 bitRate = encoderParams.bitRate,
                 keyframeInterval = 1,
-                codecName = encoderParams.codecContainerType.videoCodec,
-                tenBitHdrParametersOrNullSdr = null // TODO 10Bit HDR 対応。またトーンマッピングで SDR も考慮？
+                // TODO 10Bit HDR の場合は HEVC 固定にしている
+                codecName = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
+                    MediaFormat.MIMETYPE_VIDEO_HEVC
+                } else {
+                    encoderParams.codecContainerType.videoCodec
+                },
+                // 10Bit HDR を維持する場合。SDR 動画と SDR に変換する場合は null
+                tenBitHdrParametersOrNullSdr = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
+                    VideoEncoderV2.TenBitHdrParameters(
+                        colorStandard = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo.colorStandard,
+                        colorTransfer = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo.colorTransfer
+                    )
+                } else null
             )
         }
 

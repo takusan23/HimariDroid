@@ -64,7 +64,13 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
             videoHeight = videoFormat.videoHeight,
             bitRate = videoFormat.bitRate,
             frameRate = videoFormat.frameRate,
-            codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4
+            codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
+            tenBitHdrOptionOrNull = if (videoFormat.tenBitHdrInfo != null) {
+                EncoderParams.TenBitHdrOption(
+                    mode = EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP,
+                    tenBitHdrInfo = videoFormat.tenBitHdrInfo
+                )
+            } else null
         )
     }
 
@@ -130,16 +136,44 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
             return@withContext null
         }
 
+        // HDR の場合は色域、ガンマカーブをパース
+        val tenBitHdrParameterPair = metadataRetriever.extractTenBitHdrPair()
+        val tenBitHdrInfo = if (tenBitHdrParameterPair != null) {
+            VideoFormat.TenBitHdrInfo(tenBitHdrParameterPair.first, tenBitHdrParameterPair.second)
+        } else {
+            null
+        }
+
         val videoFormat = VideoFormat(
             codecContainerType = codecContainerType,
             fileName = MediaTool.getFileName(context, uri),
             videoHeight = videoHeight,
             videoWidth = videoWidth,
             bitRate = bitRate?.toIntOrNull() ?: 3_000_000,
-            frameRate = runCatching { mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE) }.getOrNull() ?: 30 // 含まれていなければ適当に 30 fps
+            frameRate = runCatching { mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE) }.getOrNull() ?: 30, // 含まれていなければ適当に 30 fps
+            tenBitHdrInfo = tenBitHdrInfo
         )
         extractor.release()
+        metadataRetriever.release()
         return@withContext videoFormat
+    }
+
+    /**
+     * [MediaMetadataRetriever]で動画が 10Bit HDR に対応しているかを返す。
+     * 詳しくはここ
+     * https://cs.android.com/android/platform/superproject/main/+/main:frameworks/av/media/libstagefright/FrameDecoder.cpp
+     *
+     * @return 色域、ガンマカーブをいれた Pair。null の場合は HDR ではない。
+     */
+    private fun MediaMetadataRetriever.extractTenBitHdrPair(): Pair<Int, Int>? {
+        val colorStandard = extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_STANDARD)?.toInt()
+        val colorTransfer = extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_TRANSFER)?.toInt()
+        // HDR かの判定
+        return if (colorStandard == MediaFormat.COLOR_STANDARD_BT2020 && (colorTransfer == MediaFormat.COLOR_TRANSFER_ST2084 || colorTransfer == MediaFormat.COLOR_TRANSFER_HLG)) {
+            Pair(colorStandard, colorTransfer)
+        } else {
+            null
+        }
     }
 
     companion object {

@@ -1,15 +1,22 @@
 package io.github.takusan23.himaridroid.data
 
 import android.media.MediaFormat
+import io.github.takusan23.himaridroid.data.EncoderParams.TenBitHdrOption
+import io.github.takusan23.himaridroid.data.EncoderParams.TenBitHdrOption.TenBitHdrMode
 
-/** エンコーダーに渡す設定 */
+/**
+ * エンコーダーに渡す設定
+ *
+ * @param tenBitHdrOptionOrNull 10Bit HDR 動画の場合は[TenBitHdrOption]。SDR 動画の場合は null
+ */
 data class EncoderParams(
     val fileNameWithoutExtension: String,
     val videoWidth: Int,
     val videoHeight: Int,
     val bitRate: Int,
     val frameRate: Int,
-    val codecContainerType: CodecContainerType
+    val codecContainerType: CodecContainerType,
+    val tenBitHdrOptionOrNull: TenBitHdrOption?
 ) {
 
     /** 拡張子付きのファイル名を返す */
@@ -43,4 +50,23 @@ data class EncoderParams(
         WEBM("webm");
     }
 
+    /**
+     * 10Bit HDR 動画の情報
+     *
+     * @param mode [TenBitHdrMode]
+     * @param tenBitHdrInfo 色域とガンマカーブ
+     */
+    data class TenBitHdrOption(
+        val mode: TenBitHdrMode,
+        val tenBitHdrInfo: VideoFormat.TenBitHdrInfo
+    ) {
+
+        enum class TenBitHdrMode {
+            /** 10Bit HDR はそのまま HDR 動画として扱う。変換後も 10Bit HDR になります */
+            KEEP,
+
+            /** HDR から SDR へトーンマッピングします。おそらく白っぽくなりますが、SDR で再生できるので再生できる端末は増える。 */
+            TO_SDR
+        }
+    }
 }

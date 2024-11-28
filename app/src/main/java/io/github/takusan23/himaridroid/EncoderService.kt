@@ -76,6 +76,7 @@ class EncoderService : Service() {
             // Flow を購読する
             launch {
                 // 秒が変化したら
+                // TODO 動画時間を受け取ってプログレスバーが出せるようにする
                 var prevCurrentPositionSec = 0
                 progressCurrentPositionMs.collect {
                     val second = (it / 1_000).toInt()
