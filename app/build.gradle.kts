@@ -46,6 +46,9 @@ android {
 
 dependencies {
 
+    // MediaCodec を叩くライブラリ
+    implementation(libs.akaricore)
+
     // Kotlin で書いた WebM 書き込み
     implementation(project(":himari-webm"))
 
