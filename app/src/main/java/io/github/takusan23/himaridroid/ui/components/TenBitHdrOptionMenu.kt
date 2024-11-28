@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.himaridroid.R
@@ -38,7 +39,7 @@ private data class TenBitHdrModeMenuDescription(
     val description: String
 )
 
-/** 10Bit HDR 選択シート TODO ローカライズ */
+/** 10Bit HDR 選択シート */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TenBitHdrOptionMenu(
@@ -50,13 +51,13 @@ fun TenBitHdrOptionMenu(
     val tenBitHdrModeMenu = listOf(
         TenBitHdrModeMenuDescription(
             mode = EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP,
-            title = "HDR を維持する",
-            description = "HDR のまま変換します。今のところコーデックは HEVC(H.265) に限定されます。"
+            title = stringResource(id = R.string.ten_bit_hdr_option_menu_keep_title),
+            description = stringResource(id = R.string.ten_bit_hdr_option_menu_keep_description)
         ),
         TenBitHdrModeMenuDescription(
             mode = EncoderParams.TenBitHdrOption.TenBitHdrMode.TO_SDR,
-            title = "SDR に変換する",
-            description = "SDR に変換します。動画の色が白っぽくなるので注意です。"
+            title = stringResource(id = R.string.ten_bit_hdr_option_menu_to_sdr_title),
+            description = stringResource(id = R.string.ten_bit_hdr_option_menu_to_sdr_description)
         )
     )
 
@@ -71,7 +72,7 @@ fun TenBitHdrOptionMenu(
             ) {
 
                 Text(
-                    text = "10 ビット HDR 動画の変換メニュー",
+                    text = stringResource(id = R.string.ten_bit_hdr_option_menu_title),
                     fontSize = 20.sp
                 )
 
@@ -86,7 +87,7 @@ fun TenBitHdrOptionMenu(
                             },
                             shape = when (index) {
                                 0 -> RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 5.dp, bottomEnd = 5.dp)
-                                EncoderParams.CodecContainerType.entries.size - 1 -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
+                                EncoderParams.TenBitHdrOption.TenBitHdrMode.entries.size - 1 -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
                                 else -> RoundedCornerShape(5.dp)
                             }
                         ) {
@@ -140,20 +141,22 @@ fun TenBitHdrOptionMenu(
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isOpen.value) },
                 value = tenBitHdrModeMenu[currentTenBitHdrMode.ordinal].title,
-                label = { Text(text = "10 ビット HDR 動画の変換メニュー") }
+                label = { Text(text = stringResource(id = R.string.ten_bit_hdr_option_menu_title)) }
             )
         }
 
         Row(
-            modifier = Modifier.border(
-                width = 1.dp,
-                color = LocalContentColor.current,
-                shape = RoundedCornerShape(5.dp)
-            )
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = LocalContentColor.current,
+                    shape = RoundedCornerShape(5.dp)
+                )
         ) {
             Text(
                 modifier = Modifier.padding(5.dp),
-                text = "10 ビット HDR の動画の再エンコードにも対応しました。",
+                text = stringResource(id = R.string.ten_bit_hdr_option_menu_description),
                 fontSize = 14.sp
             )
         }

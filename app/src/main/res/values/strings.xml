@@ -50,4 +50,15 @@
     <string name="code_select_sheet_select_button">Codec container selection</string>
     <string name="setting_open_privacy_policy_title">Open privacy policy</string>
     <string name="setting_open_privacy_policy_description">open</string>
+    <string name="video_select_info_hdr_title">10-bit HDR video</string>
+    <string name="video_select_info_hdr_bt709">BT.709</string>
+    <string name="video_select_info_hdr_bt2020">BT.2020</string>
+    <string name="video_select_info_hdr_hlg">HLG</string>
+    <string name="video_select_info_hdr_st2084">ST2084</string>
+    <string name="ten_bit_hdr_option_menu_title">10-bit HDR video conversion menu</string>
+    <string name="ten_bit_hdr_option_menu_keep_title">Maintain HDR</string>
+    <string name="ten_bit_hdr_option_menu_keep_description">Converts while maintaining HDR. For now, the codec is limited to HEVC (H.265).</string>
+    <string name="ten_bit_hdr_option_menu_to_sdr_title">Convert to SDR</string>
+    <string name="ten_bit_hdr_option_menu_to_sdr_description">Converts to SDR. Note that the video color will become whitish.</string>
+    <string name="ten_bit_hdr_option_menu_description">Supports 10-bit HDR re-encoding.</string>
 </resources>

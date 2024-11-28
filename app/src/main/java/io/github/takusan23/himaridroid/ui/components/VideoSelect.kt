@@ -1,5 +1,6 @@
 package io.github.takusan23.himaridroid.ui.components
 
+import android.media.MediaFormat
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -87,6 +88,22 @@ private fun VideoTrackInfo(
         Text(text = stringResource(id = R.string.video_select_info_title), fontSize = 18.sp)
         Text(text = "${stringResource(id = R.string.video_select_info_file_name)} : ${videoFormat.fileName}")
         Text(text = "${stringResource(id = R.string.video_select_info_height_width)} : ${videoFormat.videoHeight} x ${videoFormat.videoWidth}")
+
+        if (videoFormat.tenBitHdrInfo != null) {
+            val colorStandardText = when (videoFormat.tenBitHdrInfo.colorStandard) {
+                MediaFormat.COLOR_STANDARD_BT709 -> stringResource(id = R.string.video_select_info_hdr_bt709)
+                MediaFormat.COLOR_STANDARD_BT2020 -> stringResource(id = R.string.video_select_info_hdr_bt2020)
+                else -> "---"
+            }
+            val colorTransferText = when (videoFormat.tenBitHdrInfo.colorTransfer) {
+                MediaFormat.COLOR_TRANSFER_HLG -> stringResource(id = R.string.video_select_info_hdr_hlg)
+                MediaFormat.COLOR_TRANSFER_ST2084 -> stringResource(id = R.string.video_select_info_hdr_st2084)
+                else -> "---"
+            }
+            Text(
+                text = "${stringResource(id = R.string.video_select_info_hdr_title)} : $colorStandardText / $colorTransferText"
+            )
+        }
 
         OutlinedButton(
             modifier = Modifier.align(alignment = Alignment.End),

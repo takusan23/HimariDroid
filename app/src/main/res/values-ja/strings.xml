@@ -46,4 +46,15 @@
     <string name="code_select_sheet_select_button">コーデック・コンテナの選択</string>
     <string name="setting_open_privacy_policy_title">プライバシーポリシーを開きます</string>
     <string name="setting_open_privacy_policy_description">開くよ</string>
+    <string name="video_select_info_hdr_title">10 ビット HDR 動画</string>
+    <string name="video_select_info_hdr_bt709">BT.709</string>
+    <string name="video_select_info_hdr_bt2020">BT.2020</string>
+    <string name="video_select_info_hdr_hlg">HLG</string>
+    <string name="video_select_info_hdr_st2084">ST2084</string>
+    <string name="ten_bit_hdr_option_menu_title">10 ビット HDR 動画の変換メニュー</string>
+    <string name="ten_bit_hdr_option_menu_keep_title">HDR を維持する</string>
+    <string name="ten_bit_hdr_option_menu_keep_description">HDR のまま変換します。今のところコーデックは HEVC(H.265) に限定されます。</string>
+    <string name="ten_bit_hdr_option_menu_to_sdr_title">SDR に変換する</string>
+    <string name="ten_bit_hdr_option_menu_to_sdr_description">SDR に変換します。動画の色が白っぽくなるので注意です。</string>
+    <string name="ten_bit_hdr_option_menu_description">10 ビット HDR の再エンコードに対応しました。</string>
 </resources>
