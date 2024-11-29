@@ -255,17 +255,23 @@ object ReEncodeTool {
             // デコーダーからの MediaFormat を優先
             val inSamplingRate = (decoderOutputMediaFormat ?: inputAudioFormat).getInteger(MediaFormat.KEY_SAMPLE_RATE)
             val inChannelCount = (decoderOutputMediaFormat ?: inputAudioFormat).getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-            AudioSonicProcessor.reSamplingBySonic(
-                input = inputUri.toAkariCoreInputOutputData(context),
-                output = upsamplingFile.toAkariCoreInputOutputData(),
-                channelCount = inChannelCount,
-                inSamplingRate = inSamplingRate,
-                outSamplingRate = outputSamplingRate
-            )
+            val fixRawFile = if (inSamplingRate != outputSamplingRate) {
+                AudioSonicProcessor.reSamplingBySonic(
+                    input = rawFile.toAkariCoreInputOutputData(),
+                    output = upsamplingFile.toAkariCoreInputOutputData(),
+                    channelCount = inChannelCount,
+                    inSamplingRate = inSamplingRate,
+                    outSamplingRate = outputSamplingRate
+                )
+                upsamplingFile
+            } else {
+                // 修正不要
+                rawFile
+            }
 
             // サンプリングレートを変換したので再度エンコードする
             AudioEncodeDecodeProcessor.encode(
-                input = rawFile.toAkariCoreInputOutputData(),
+                input = fixRawFile.toAkariCoreInputOutputData(),
                 muxerInterface = object : AkariEncodeMuxerInterface {
                     override suspend fun onOutputData(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
                         onOutputData(byteBuffer, bufferInfo)
@@ -280,7 +286,8 @@ object ReEncodeTool {
                     }
                 },
                 codecName = codec,
-                samplingRate = outputSamplingRate
+                samplingRate = outputSamplingRate,
+                channelCount = inChannelCount
             )
         } finally {
             // コンプリート！
