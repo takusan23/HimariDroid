@@ -61,4 +61,5 @@
     <string name="ten_bit_hdr_option_menu_to_sdr_title">Convert to SDR</string>
     <string name="ten_bit_hdr_option_menu_to_sdr_description">Converts to SDR. Note that the video color will become whitish.</string>
     <string name="ten_bit_hdr_option_menu_description">Supports 10-bit HDR re-encoding.</string>
+    <string name="encoder_progress_progress_video_duration">Video duration</string>
 </resources>

@@ -37,10 +37,12 @@ class EncoderService : Service() {
     private val localBinder = LocalBinder(this)
 
     private val _isEncoding = MutableStateFlow(false)
-    private val _progressCurrentPositionMs = MutableStateFlow(0L)
+    private val _progressCurrentPositionMs = MutableStateFlow<ReEncodeProgressData?>(null)
 
     /** エンコード中かどうか */
     val isEncoding = _isEncoding.asStateFlow()
+
+    /** 再エンコードの進捗 */
     val progressCurrentPositionMs = _progressCurrentPositionMs.asStateFlow()
 
     override fun onBind(intent: Intent?): IBinder = localBinder
@@ -79,7 +81,8 @@ class EncoderService : Service() {
                 // TODO 動画時間を受け取ってプログレスバーが出せるようにする
                 var prevCurrentPositionSec = 0
                 progressCurrentPositionMs.collect {
-                    val second = (it / 1_000).toInt()
+                    it ?: return@collect
+                    val second = (it.currentPositionMs / 1_000).toInt()
                     if (prevCurrentPositionSec != second) {
                         prevCurrentPositionSec = second
                         setForegroundNotification(second)
@@ -95,12 +98,15 @@ class EncoderService : Service() {
                     context = this@EncoderService,
                     inputUri = inputUri,
                     encoderParams = encoderParams,
-                    onProgressCurrentPositionMs = { currentPosition -> _progressCurrentPositionMs.value = currentPosition }
+                    onProgressCurrentPositionMs = { videoDurationMs, currentPositionMs ->
+                        _progressCurrentPositionMs.value = ReEncodeProgressData(videoDurationMs, currentPositionMs)
+                    }
                 )
                 Toast.makeText(this@EncoderService, getString(R.string.encoder_service_finish), Toast.LENGTH_SHORT).show()
             } finally {
                 // コルーチンキャンセル時・エンコーダー終了時
                 _isEncoding.value = false
+                _progressCurrentPositionMs.value = null
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
@@ -146,6 +152,17 @@ class EncoderService : Service() {
             )
         }
     }
+
+    /**
+     * 再エンコードの進捗
+     *
+     * @param videoDurationMs 動画の時間
+     * @param currentPositionMs エンコード済みの時間
+     */
+    data class ReEncodeProgressData(
+        val videoDurationMs: Long,
+        val currentPositionMs: Long
+    )
 
     private class LocalBinder(service: EncoderService) : Binder() {
         val serviceRef = WeakReference(service)

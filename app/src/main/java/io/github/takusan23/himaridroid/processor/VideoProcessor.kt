@@ -1,4 +1,4 @@
-package io.github.takusan23.himaridroid.processor.video
+package io.github.takusan23.himaridroid.processor
 
 import android.content.Context
 import android.media.MediaCodec
@@ -8,8 +8,9 @@ import io.github.takusan23.akaricore.common.toAkariCoreInputOutputData
 import io.github.takusan23.akaricore.graphics.AkariGraphicsProcessor
 import io.github.takusan23.akaricore.graphics.AkariGraphicsSurfaceTexture
 import io.github.takusan23.akaricore.graphics.mediacodec.AkariVideoDecoder
+import io.github.takusan23.akaricore.graphics.mediacodec.AkariVideoEncoder
+import io.github.takusan23.akaricore.muxer.AkariEncodeMuxerInterface
 import io.github.takusan23.himaridroid.data.EncoderParams
-import io.github.takusan23.himaridroid.processor.muxer.VideoEncoderMuxerInterface
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -25,13 +26,13 @@ object VideoProcessor {
         encoderParams: EncoderParams,
         onOutputFormat: suspend (MediaFormat) -> Unit,
         onOutputData: suspend (ByteBuffer, MediaCodec.BufferInfo) -> Unit,
-        onProgressCurrentPositionMs: (currentPositionMs: Long) -> Unit
+        onProgressCurrentPositionMs: (videoDurationMs: Long, currentPositionMs: Long) -> Unit
     ) {
 
         // エンコーダー。中身は MediaCodec
-        val akariVideoEncoder = VideoEncoderV2().apply {
+        val akariVideoEncoder = AkariVideoEncoder().apply {
             prepare(
-                muxerInterface = object : VideoEncoderMuxerInterface {
+                muxerInterface = object : AkariEncodeMuxerInterface {
                     override suspend fun onOutputFormat(mediaFormat: MediaFormat) {
                         onOutputFormat(mediaFormat)
                     }
@@ -57,7 +58,7 @@ object VideoProcessor {
                 },
                 // 10Bit HDR を維持する場合。SDR 動画と SDR に変換する場合は null
                 tenBitHdrParametersOrNullSdr = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
-                    VideoEncoderV2.TenBitHdrParameters(
+                    AkariVideoEncoder.TenBitHdrParameters(
                         colorStandard = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo.colorStandard,
                         colorTransfer = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo.colorTransfer
                     )
@@ -93,7 +94,7 @@ object VideoProcessor {
             // 描画も開始
             val graphicsJob = launch {
                 try {
-                    val loopContinueData = AkariGraphicsProcessor.LoopContinueData(isRequestNextFrame = true, currentFrameMs = 0)
+                    val loopContinueData = AkariGraphicsProcessor.LoopContinueData(isRequestNextFrame = true, currentFrameNanoSeconds = 0)
 
                     // 1フレーム分のミリ秒と再生位置
                     val oneFrameMs = 1_000 / encoderParams.frameRate
@@ -103,10 +104,10 @@ object VideoProcessor {
                         // シークして動画フレームを描画する
                         val isSuccessDecodeFrame = akariVideoDecoder.seekTo(currentPositionMs)
                         drawSurfaceTexture(akariGraphicsSurfaceTexture)
-                        onProgressCurrentPositionMs(currentPositionMs)
+                        onProgressCurrentPositionMs(akariVideoDecoder.videoDurationMs, currentPositionMs)
 
                         // 次フレームがあるかとループ続行か
-                        loopContinueData.currentFrameMs = currentPositionMs
+                        loopContinueData.currentFrameNanoSeconds = currentPositionMs * AkariGraphicsProcessor.LoopContinueData.MILLI_SECONDS_TO_NANO_SECONDS
                         loopContinueData.isRequestNextFrame = isSuccessDecodeFrame
 
                         // 動画時間を進める

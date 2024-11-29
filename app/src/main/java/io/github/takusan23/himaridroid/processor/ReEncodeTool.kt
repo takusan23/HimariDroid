@@ -9,10 +9,8 @@ import android.net.Uri
 import io.github.takusan23.akaricore.audio.AudioEncodeDecodeProcessor
 import io.github.takusan23.akaricore.audio.AudioSonicProcessor
 import io.github.takusan23.akaricore.common.toAkariCoreInputOutputData
+import io.github.takusan23.akaricore.muxer.AkariEncodeMuxerInterface
 import io.github.takusan23.himaridroid.data.EncoderParams
-import io.github.takusan23.himaridroid.processor.audio.AudioEncodeDecodeProcessorV2
-import io.github.takusan23.himaridroid.processor.muxer.VideoEncoderMuxerInterface
-import io.github.takusan23.himaridroid.processor.video.VideoProcessor
 import io.github.takusan23.himariwebm.HimariWebm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -33,7 +31,7 @@ object ReEncodeTool {
         context: Context,
         inputUri: Uri,
         encoderParams: EncoderParams,
-        onProgressCurrentPositionMs: (Long) -> Unit
+        onProgressCurrentPositionMs: (videoDurationMs: Long, currentPositionMs: Long) -> Unit
     ): Unit = withContext(Dispatchers.Default) {
         val resultFile = if (encoderParams.codecContainerType.containerType == EncoderParams.ContainerType.MPEG_4) {
             // MP4 なら MediaMuxer
@@ -66,7 +64,7 @@ object ReEncodeTool {
         context: Context,
         inputUri: Uri,
         encoderParams: EncoderParams,
-        onProgressCurrentPositionMs: (Long) -> Unit
+        onProgressCurrentPositionMs: (videoDurationMs: Long, currentPositionMs: Long) -> Unit
     ): File {
         // 出力先
         val resultFile = context.getExternalFilesDir(null)!!.resolve(encoderParams.fileNameAndExtension)
@@ -132,7 +130,7 @@ object ReEncodeTool {
         context: Context,
         inputUri: Uri,
         encoderParams: EncoderParams,
-        onProgressCurrentPositionMs: (Long) -> Unit,
+        onProgressCurrentPositionMs: (videoDurationMs: Long, currentPositionMs: Long) -> Unit
     ): File {
         // 一時的にファイルを置いておきたいので
         val tempFolder = context.getExternalFilesDir(null)!!.resolve("temp_folder").apply { mkdir() }
@@ -266,23 +264,23 @@ object ReEncodeTool {
             )
 
             // サンプリングレートを変換したので再度エンコードする
-            AudioEncodeDecodeProcessorV2.encode(
+            AudioEncodeDecodeProcessor.encode(
                 input = rawFile.toAkariCoreInputOutputData(),
-                codecName = codec,
-                samplingRate = outputSamplingRate,
-                muxerInterface = object : VideoEncoderMuxerInterface {
-                    override suspend fun onOutputFormat(mediaFormat: MediaFormat) {
-                        onOutputFormat(mediaFormat)
-                    }
-
+                muxerInterface = object : AkariEncodeMuxerInterface {
                     override suspend fun onOutputData(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
                         onOutputData(byteBuffer, bufferInfo)
+                    }
+
+                    override suspend fun onOutputFormat(mediaFormat: MediaFormat) {
+                        onOutputFormat(mediaFormat)
                     }
 
                     override suspend fun stop() {
                         // do nothing
                     }
-                }
+                },
+                codecName = codec,
+                samplingRate = outputSamplingRate
             )
         } finally {
             // コンプリート！

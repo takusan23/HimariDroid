@@ -57,4 +57,5 @@
     <string name="ten_bit_hdr_option_menu_to_sdr_title">SDR に変換する</string>
     <string name="ten_bit_hdr_option_menu_to_sdr_description">SDR に変換します。動画の色が白っぽくなるので注意です。</string>
     <string name="ten_bit_hdr_option_menu_description">10 ビット HDR の再エンコードに対応しました。</string>
+    <string name="encoder_progress_progress_video_duration">動画の時間</string>
 </resources>

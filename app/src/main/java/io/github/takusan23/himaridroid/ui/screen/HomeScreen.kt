@@ -57,7 +57,7 @@ fun HomeScreen(
     // エンコーダーサービスとバインドする
     val encoderService = remember { EncoderService.bindService(context, lifecycleOwner.lifecycle) }.collectAsState(initial = null)
     val isEncoding = encoderService.value?.isEncoding?.collectAsState()
-    val progressCurrentPositionMs = encoderService.value?.progressCurrentPositionMs?.collectAsState()
+    val reEncodeProgressData = encoderService.value?.progressCurrentPositionMs?.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.snackbarMessage.collect { message ->
@@ -70,12 +70,12 @@ fun HomeScreen(
         }
     }
 
-    if (isEncoding?.value == true) {
+    if (isEncoding?.value == true && reEncodeProgressData?.value != null) {
         // エンコード中
         EncodingScreen(
             onStopClick = { encoderService.value?.stopEncode() },
             scrollBehavior = scrollBehavior,
-            currentPositionMs = progressCurrentPositionMs?.value ?: 0
+            reEncodeProgressData = reEncodeProgressData.value!!
         )
     } else {
         // エンコードしてない
@@ -104,7 +104,7 @@ fun HomeScreen(
 private fun EncodingScreen(
     onStopClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
-    currentPositionMs: Long
+    reEncodeProgressData: EncoderService.ReEncodeProgressData
 ) {
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -119,7 +119,7 @@ private fun EncodingScreen(
                     modifier = Modifier
                         .padding(horizontal = 20.dp)
                         .fillMaxWidth(),
-                    currentPositionMs = currentPositionMs,
+                    reEncodeProgressData = reEncodeProgressData,
                     onStopClick = onStopClick
                 )
             }
