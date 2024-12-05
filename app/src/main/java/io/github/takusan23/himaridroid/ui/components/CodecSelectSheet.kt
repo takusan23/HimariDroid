@@ -142,22 +142,37 @@ fun CodecSelectSheet(
         }
     }
 
-    ExposedDropdownMenuBox(
+    Column(
         modifier = modifier,
-        expanded = isOpen.value,
-        onExpandedChange = { isOpen.value = !isOpen.value }
+        verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth(),
-            value = codecContainerType.name,
-            onValueChange = { /* do nothing */ },
-            readOnly = true,
-            enabled = isEnable,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isOpen.value) },
-            label = { Text(text = stringResource(id = R.string.code_select_sheet_select_button)) }
-        )
-    }
 
+        ExposedDropdownMenuBox(
+            expanded = isOpen.value,
+            onExpandedChange = { isOpen.value = !isOpen.value }
+        ) {
+            OutlinedTextField(
+                modifier = Modifier
+                    .menuAnchor(
+                        type = MenuAnchorType.PrimaryNotEditable,
+                        enabled = isEnable
+                    )
+                    .fillMaxWidth(),
+                value = codecContainerType.name,
+                onValueChange = { /* do nothing */ },
+                readOnly = true,
+                enabled = isEnable,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isOpen.value) },
+                label = { Text(text = stringResource(id = R.string.code_select_sheet_select_button)) }
+            )
+        }
+
+        // TODO 今のところ 10Bit HDR は動画コーデック HEVC のみ
+        if (!isEnable) {
+            DescriptionCard(
+                text = stringResource(id = R.string.code_select_sheet_select_ten_bit_hdr_notice),
+                iconResId = R.drawable.info_24px
+            )
+        }
+    }
 }

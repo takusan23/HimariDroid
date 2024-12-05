@@ -1,6 +1,5 @@
 package io.github.takusan23.himaridroid.ui.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -191,19 +190,10 @@ private fun NumberInputField(
         )
 
         if (description != null) {
-            Row(
-                modifier = Modifier.border(
-                    width = 1.dp,
-                    color = LocalContentColor.current,
-                    shape = RoundedCornerShape(5.dp)
-                )
-            ) {
-                Text(
-                    modifier = Modifier.padding(5.dp),
-                    text = description,
-                    fontSize = 14.sp
-                )
-            }
+            DescriptionCard(
+                text = description,
+                iconResId = R.drawable.info_24px
+            )
         }
     }
 }

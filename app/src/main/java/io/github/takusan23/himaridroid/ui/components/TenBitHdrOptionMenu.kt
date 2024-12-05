@@ -1,6 +1,5 @@
 package io.github.takusan23.himaridroid.ui.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
@@ -145,21 +143,9 @@ fun TenBitHdrOptionMenu(
             )
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = LocalContentColor.current,
-                    shape = RoundedCornerShape(5.dp)
-                )
-        ) {
-            Text(
-                modifier = Modifier.padding(5.dp),
-                text = stringResource(id = R.string.ten_bit_hdr_option_menu_description),
-                fontSize = 14.sp
-            )
-        }
+        DescriptionCard(
+            text = stringResource(id = R.string.ten_bit_hdr_option_menu_description),
+            iconResId = R.drawable.android_hdr_icon
+        )
     }
-
 }
