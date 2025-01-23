@@ -11,7 +11,7 @@ import io.github.takusan23.himaridroid.data.VideoFormat.TenBitHdrInfo
  * @param videoHeight 高さ
  * @param bitRate ビットレート
  * @param frameRate フレームレート
- * @param tenBitHdrInfo 10Bit HDR の動画の場合は[TenBitHdrInfo]。SDR 動画の場合は null。
+ * @param tenBitHdrInfo 10-bit HDR の動画の場合は[TenBitHdrInfo]。SDR 動画の場合は null。
  */
 data class VideoFormat(
     val codecContainerType: EncoderParams.CodecContainerType,
@@ -24,7 +24,7 @@ data class VideoFormat(
 ) {
 
     /**
-     * 10Bit HDR の詳細
+     * 10-bit HDR の詳細
      *
      * @param colorStandard 色域
      * @param colorTransfer ガンマカーブ

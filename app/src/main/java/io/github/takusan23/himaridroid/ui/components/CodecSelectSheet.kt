@@ -167,7 +167,7 @@ fun CodecSelectSheet(
             )
         }
 
-        // TODO 今のところ 10Bit HDR は動画コーデック HEVC のみ
+        // TODO 今のところ 10-bit HDR は動画コーデック HEVC のみ
         if (!isEnable) {
             DescriptionCard(
                 text = stringResource(id = R.string.code_select_sheet_select_ten_bit_hdr_notice),

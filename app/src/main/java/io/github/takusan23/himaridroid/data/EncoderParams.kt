@@ -7,7 +7,7 @@ import io.github.takusan23.himaridroid.data.EncoderParams.TenBitHdrOption.TenBit
 /**
  * エンコーダーに渡す設定
  *
- * @param tenBitHdrOptionOrNull 10Bit HDR 動画の場合は[TenBitHdrOption]。SDR 動画の場合は null
+ * @param tenBitHdrOptionOrNull 10-bit HDR 動画の場合は[TenBitHdrOption]。SDR 動画の場合は null
  */
 data class EncoderParams(
     val fileNameWithoutExtension: String,
@@ -51,7 +51,7 @@ data class EncoderParams(
     }
 
     /**
-     * 10Bit HDR 動画の情報
+     * 10-bit HDR 動画の情報
      *
      * @param mode [TenBitHdrMode]
      * @param tenBitHdrInfo 色域とガンマカーブ
@@ -62,10 +62,10 @@ data class EncoderParams(
     ) {
 
         enum class TenBitHdrMode {
-            /** 10Bit HDR はそのまま HDR 動画として扱う。変換後も 10Bit HDR になります */
+            /** 10-bit HDR はそのまま HDR 動画として扱う。変換後も 10-bit HDR になります */
             KEEP,
 
-            /** HDR から SDR へトーンマッピングします。おそらく白っぽくなりますが、SDR で再生できるので再生できる端末は増える。 */
+            /** HDR から SDR へトーンマッピングします。端末にトーンマッピング機能があれば使うが、ない場合は白っぽくなる。 */
             TO_SDR
         }
     }

@@ -2,6 +2,7 @@ package io.github.takusan23.himaridroid.processor
 
 import android.content.Context
 import android.media.MediaCodec
+import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.net.Uri
 import io.github.takusan23.akaricore.common.toAkariCoreInputOutputData
@@ -50,17 +51,23 @@ object VideoProcessor {
                 frameRate = encoderParams.frameRate,
                 bitRate = encoderParams.bitRate,
                 keyframeInterval = 1,
-                // TODO 10Bit HDR の場合は HEVC 固定にしている
+                // TODO 10-bit HDR の場合は HEVC 固定にしている
                 codecName = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
                     MediaFormat.MIMETYPE_VIDEO_HEVC
                 } else {
                     encoderParams.codecContainerType.videoCodec
                 },
-                // 10Bit HDR を維持する場合。SDR 動画と SDR に変換する場合は null
+                // 10-bit HDR を維持する場合。SDR 動画と SDR に変換する場合は null
                 tenBitHdrParametersOrNullSdr = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
+                    val (colorStandard, colorTransfer) = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo
                     AkariVideoEncoder.TenBitHdrParameters(
-                        colorStandard = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo.colorStandard,
-                        colorTransfer = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo.colorTransfer
+                        colorStandard = colorStandard,
+                        colorTransfer = colorTransfer,
+                        codecProfile = when (colorTransfer) {
+                            MediaFormat.COLOR_TRANSFER_HLG -> MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10
+                            MediaFormat.COLOR_TRANSFER_ST2084 -> MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10HDR10 // TODO HDR10（PQ）形式は OpenGL 側のフラグメントシェーダーをまだ書いていないため動かない
+                            else -> TODO() // ありえないはず
+                        }
                     )
                 } else null
             )
@@ -73,16 +80,18 @@ object VideoProcessor {
             outputSurface = akariVideoEncoder.getInputSurface(),
             width = encoderParams.videoWidth,
             height = encoderParams.videoHeight,
-            isEnableTenBitHdr = false // TODO 10Bit HDR 対応
+            isEnableTenBitHdr = encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP
         ).apply { prepare() }
 
         // デコーダー
         // デコードした映像の向き先は OpenGL ES のテクスチャ（SurfaceTexture）
         val akariGraphicsSurfaceTexture = akariGraphicsProcessor.genTextureId { texId -> AkariGraphicsSurfaceTexture(texId) }
         val akariVideoDecoder = AkariVideoDecoder().apply {
+            // トーンマッピング機能に対応している機種であれば利用。非対応なら白っぽくなるかも。
             prepare(
                 input = inputUri.toAkariCoreInputOutputData(context),
-                outputSurface = akariGraphicsSurfaceTexture.surface
+                outputSurface = akariGraphicsSurfaceTexture.surface,
+                isSdrToneMapping = encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.TO_SDR
             )
         }
 

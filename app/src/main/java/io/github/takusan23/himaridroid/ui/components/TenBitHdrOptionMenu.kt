@@ -37,7 +37,7 @@ private data class TenBitHdrModeMenuDescription(
     val description: String
 )
 
-/** 10Bit HDR 選択シート */
+/** 10-bit HDR 選択シート */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TenBitHdrOptionMenu(
@@ -59,7 +59,7 @@ fun TenBitHdrOptionMenu(
         )
     )
 
-    // 10Bit HDR 選択ボトムシート
+    // 10-bit HDR 選択ボトムシート
     val isOpen = remember { mutableStateOf(false) }
     if (isOpen.value) {
         ModalBottomSheet(onDismissRequest = { isOpen.value = false }) {

@@ -66,7 +66,7 @@ fun VideoEncoderSetting(
             CodecSelectSheet(
                 modifier = Modifier.fillMaxWidth(),
                 onSelectCodec = { type -> update { it.copy(codecContainerType = type) } },
-                // TODO 10Bit HDR の場合は HEVC 固定にしている
+                // TODO 10-bit HDR の場合は HEVC 固定にしている
                 isEnable = encoderParams.tenBitHdrOptionOrNull?.mode != EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP,
                 codecContainerType = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
                     EncoderParams.CodecContainerType.HEVC_AAC_MPEG4
@@ -107,7 +107,7 @@ fun VideoEncoderSetting(
                 )
             }
 
-            // 10Bit HDR 動画のときのみ
+            // 10-bit HDR 動画のときのみ
             if (encoderParams.tenBitHdrOptionOrNull != null) {
                 TenBitHdrOptionMenu(
                     modifier = Modifier.fillMaxWidth(),

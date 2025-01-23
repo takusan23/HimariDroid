@@ -159,7 +159,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
     }
 
     /**
-     * [MediaMetadataRetriever]で動画が 10Bit HDR に対応しているかを返す。
+     * [MediaMetadataRetriever]で動画が 10-bit HDR に対応しているかを返す。
      * 詳しくはここ
      * https://cs.android.com/android/platform/superproject/main/+/main:frameworks/av/media/libstagefright/FrameDecoder.cpp
      *
