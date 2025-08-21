@@ -71,6 +71,7 @@ object ReEncodeTool {
         val mediaMuxer = MediaMuxer(resultFile.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
 
         // 音声トラックを追加。音声トラックがない場合は null
+        // todo webm -> mp4 の場合はこちらに来る、opus を aac にする必要
         val audioTrackPairOrNull = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.AUDIO)
         var audioTrackIndexOrNull: Int? = null
         // あれば MediaMuxer へ追加

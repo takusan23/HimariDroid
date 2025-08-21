@@ -112,12 +112,12 @@ object VideoProcessor {
                     akariGraphicsProcessor.drawLoop {
                         // シークして動画フレームを描画する
                         val isSuccessDecodeFrame = akariVideoDecoder.seekTo(currentPositionMs)
-                        drawSurfaceTexture(akariGraphicsSurfaceTexture)
+                        drawSurfaceTexture(akariGraphicsSurfaceTexture, nullOrTextureUpdateTimeoutMs = 500)
                         onProgressCurrentPositionMs(akariVideoDecoder.videoDurationMs, currentPositionMs)
 
                         // 次フレームがあるかとループ続行か
                         loopContinueData.currentFrameNanoSeconds = currentPositionMs * AkariGraphicsProcessor.LoopContinueData.MILLI_SECONDS_TO_NANO_SECONDS
-                        loopContinueData.isRequestNextFrame = isSuccessDecodeFrame
+                        loopContinueData.isRequestNextFrame = isSuccessDecodeFrame.isSuccessful
 
                         // 動画時間を進める
                         currentPositionMs += oneFrameMs
