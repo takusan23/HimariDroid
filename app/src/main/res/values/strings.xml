@@ -16,7 +16,7 @@
     <string name="video_select_button">Choose a video</string>
     <string name="video_select_info_title">Selected video</string>
     <string name="video_select_info_file_name">file name</string>
-    <string name="video_select_info_height_width">Video size ( height x width )</string>
+    <string name="video_select_info_height_width">Video size ( width x height )</string>
     <string name="video_select_info_re_select">Reselect video</string>
     <string name="audio_info_not_re_encode">The audio track uses the original data.</string>
     <string name="audio_info_re_encode">Audio tracks are re-encoded to AAC/Opus for inclusion in mp4/WebM containers.</string>
@@ -63,4 +63,5 @@
     <string name="ten_bit_hdr_option_menu_description">Supports 10-bit HDR re-encoding.</string>
     <string name="encoder_progress_progress_video_duration">Video duration</string>
     <string name="code_select_sheet_select_ten_bit_hdr_notice">For now, 10-bit HDR video re-encoding is fixed to HEVC, see the HDR menu for details.</string>
+    <string name="video_select_info_detect_dolby_vision_fallback">Dolby Vision detected. Since Dolby Vision is not supported, the gamma curve will be HLG or PQ, whichever is compatible. I don\'t think there will be much difference in image quality.</string>
 </resources>

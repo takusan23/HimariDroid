@@ -17,7 +17,7 @@
     <string name="video_select_button">動画を選ぶ</string>
     <string name="video_select_info_title">選択した動画</string>
     <string name="video_select_info_file_name">ファイル名</string>
-    <string name="video_select_info_height_width">動画のサイズ ( 縦 x 横 )</string>
+    <string name="video_select_info_height_width">動画のサイズ ( 横 x 縦 )</string>
     <string name="video_select_info_re_select">動画を選び直す</string>
     <string name="audio_info_not_re_encode">音声トラックは元データのを利用します。</string>
     <string name="audio_info_re_encode">音声トラックは mp4 / WebM コンテナに入れるために、AAC / Opus へ再エンコードされます。</string>
@@ -59,4 +59,5 @@
     <string name="ten_bit_hdr_option_menu_description">10 ビット HDR の再エンコードに対応しました。</string>
     <string name="encoder_progress_progress_video_duration">動画の時間</string>
     <string name="code_select_sheet_select_ten_bit_hdr_notice">今のところ、10 ビット HDR 動画の再エンコードは HEVC に固定されます。詳しくは HDR のメニューを見てください。</string>
+    <string name="video_select_info_detect_dolby_vision_fallback">ドルビービジョンが検出されました。ドルビービジョンには対応していないため、ガンマカーブが HLG もしくは PQ のどちらか互換性がある方が使われます。画質はあんまり変わらないと思います。</string>
 </resources>

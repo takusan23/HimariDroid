@@ -8,6 +8,8 @@ import android.net.Uri
 import io.github.takusan23.akaricore.common.toAkariCoreInputOutputData
 import io.github.takusan23.akaricore.graphics.AkariGraphicsProcessor
 import io.github.takusan23.akaricore.graphics.AkariGraphicsSurfaceTexture
+import io.github.takusan23.akaricore.graphics.data.AkariGraphicsProcessorColorSpaceType
+import io.github.takusan23.akaricore.graphics.data.AkariGraphicsProcessorRenderingPrepareData
 import io.github.takusan23.akaricore.graphics.mediacodec.AkariVideoDecoder
 import io.github.takusan23.akaricore.graphics.mediacodec.AkariVideoEncoder
 import io.github.takusan23.akaricore.muxer.AkariEncodeMuxerInterface
@@ -52,10 +54,10 @@ object VideoProcessor {
                 bitRate = encoderParams.bitRate,
                 keyframeInterval = 1,
                 // TODO 10-bit HDR の場合は HEVC 固定にしている
-                codecName = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
-                    MediaFormat.MIMETYPE_VIDEO_HEVC
-                } else {
-                    encoderParams.codecContainerType.videoCodec
+                // TODO ドルビービジョンの場合もよくわからないので HEVC で、ガンマカーブは HLG か PQ を利用する
+                codecName = when {
+                    encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP || encoderParams.codecContainerType == EncoderParams.CodecContainerType.DOLBY_VISION -> MediaFormat.MIMETYPE_VIDEO_HEVC
+                    else -> encoderParams.codecContainerType.videoCodec
                 },
                 // 10-bit HDR を維持する場合。SDR 動画と SDR に変換する場合は null
                 tenBitHdrParametersOrNullSdr = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
@@ -77,10 +79,21 @@ object VideoProcessor {
         // デコーダーの出力 Surface にこれを指定して、エンコーダーに OpenGL ES で描画した映像データが Surface 経由で行くようにする
         // 本当は OpenGL ES なんて使わずともデコーダーでデコードした映像フレームをエンコーダーに渡すだけでいいはずなのだが、OpenGL ES を経由しておくのが安牌？
         val akariGraphicsProcessor = AkariGraphicsProcessor(
-            outputSurface = akariVideoEncoder.getInputSurface(),
-            width = encoderParams.videoWidth,
-            height = encoderParams.videoHeight,
-            isEnableTenBitHdr = encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP
+            renderingPrepareData = AkariGraphicsProcessorRenderingPrepareData.SurfaceRendering(
+                surface = akariVideoEncoder.getInputSurface(),
+                width = encoderParams.videoWidth,
+                height = encoderParams.videoHeight
+            ),
+            colorSpaceType = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
+                val (_, colorTransfer) = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo
+                when (colorTransfer) {
+                    MediaFormat.COLOR_TRANSFER_HLG -> AkariGraphicsProcessorColorSpaceType.TEN_BIT_HDR_BT2020_HLG
+                    MediaFormat.COLOR_TRANSFER_ST2084 -> AkariGraphicsProcessorColorSpaceType.TEN_BIT_HDR_BT2020_PQ
+                    else -> AkariGraphicsProcessorColorSpaceType.SDR_BT709 // ここには来ないはず
+                }
+            } else {
+                AkariGraphicsProcessorColorSpaceType.SDR_BT709
+            }
         ).apply { prepare() }
 
         // デコーダー

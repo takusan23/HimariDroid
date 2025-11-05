@@ -1,8 +1,6 @@
 package io.github.takusan23.himaridroid.data
 
 import android.media.MediaFormat
-import io.github.takusan23.himaridroid.data.EncoderParams.TenBitHdrOption
-import io.github.takusan23.himaridroid.data.EncoderParams.TenBitHdrOption.TenBitHdrMode
 
 /**
  * エンコーダーに渡す設定
@@ -41,7 +39,17 @@ data class EncoderParams(
          * AV1 / Opus / WebM
          * WebM コンテナに AV1 を入れるのは仕様にないみたいなのですが、ブラウザ系がやってるので実質対応みたいになっているらしい？
          */
-        AV1_OPUS_WEBM(MediaFormat.MIMETYPE_VIDEO_AV1, MediaFormat.MIMETYPE_AUDIO_OPUS, ContainerType.WEBM);
+        AV1_OPUS_WEBM(MediaFormat.MIMETYPE_VIDEO_AV1, MediaFormat.MIMETYPE_AUDIO_OPUS, ContainerType.WEBM),
+
+        /**
+         * ドルビービジョン
+         * 会社の名前がついている以上、好きに使って良いのか不明なのでいちばん最後に、、
+         * HLG / PQ として使う分には怒られない？
+         *
+         * iPhone の HDR がドルビービジョン。
+         * ドルビービジョンは本来ガンマカーブが PQ である。が、一方スマホに搭載されているドルビービジョンは Profile 8.4 とか呼ばれているもので HLG と互換性がある
+         */
+        DOLBY_VISION(MediaFormat.MIMETYPE_VIDEO_HEVC, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4)
     }
 
     /** コンテナ */

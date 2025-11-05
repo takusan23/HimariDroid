@@ -118,6 +118,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
                 MediaFormat.MIMETYPE_VIDEO_AVC -> EncoderParams.CodecContainerType.AVC_AAC_MPEG4
                 MediaFormat.MIMETYPE_VIDEO_HEVC -> EncoderParams.CodecContainerType.HEVC_AAC_MPEG4
                 MediaFormat.MIMETYPE_VIDEO_AV1 -> EncoderParams.CodecContainerType.AV1_AAC_MPEG4
+                MediaFormat.MIMETYPE_VIDEO_DOLBY_VISION -> EncoderParams.CodecContainerType.DOLBY_VISION
                 else -> null
             }
 

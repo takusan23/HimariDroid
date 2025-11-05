@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.himaridroid.R
+import io.github.takusan23.himaridroid.data.EncoderParams
 import io.github.takusan23.himaridroid.data.VideoFormat
 
 /** 動画選択 */
@@ -87,7 +88,7 @@ private fun VideoTrackInfo(
 
         Text(text = stringResource(id = R.string.video_select_info_title), fontSize = 18.sp)
         Text(text = "${stringResource(id = R.string.video_select_info_file_name)} : ${videoFormat.fileName}")
-        Text(text = "${stringResource(id = R.string.video_select_info_height_width)} : ${videoFormat.videoHeight} x ${videoFormat.videoWidth}")
+        Text(text = "${stringResource(id = R.string.video_select_info_height_width)} : ${videoFormat.videoWidth} x ${videoFormat.videoHeight}")
 
         if (videoFormat.tenBitHdrInfo != null) {
             val colorStandardText = when (videoFormat.tenBitHdrInfo.colorStandard) {
@@ -102,6 +103,18 @@ private fun VideoTrackInfo(
             }
             Text(
                 text = "${stringResource(id = R.string.video_select_info_hdr_title)} : $colorStandardText / $colorTransferText"
+            )
+        }
+
+        // ドルビービジョンのときの分岐
+        // ドルビービジョンがイマイチよくわかってないので、ガンマカーブ HLG / PQ にフォールバックする。互換性があるので見た目が変わったりはしないはず・・・
+        // その旨を表示する
+        // iPhone の HDR 動画はドルビービジョン
+        if (videoFormat.codecContainerType == EncoderParams.CodecContainerType.DOLBY_VISION) {
+            DescriptionCard(
+                modifier = Modifier.padding(vertical = 5.dp),
+                text = stringResource(id = R.string.video_select_info_detect_dolby_vision_fallback),
+                iconResId = R.drawable.info_24px
             )
         }
 
