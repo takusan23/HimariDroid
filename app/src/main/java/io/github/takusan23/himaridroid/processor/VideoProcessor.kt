@@ -53,23 +53,45 @@ object VideoProcessor {
                 frameRate = encoderParams.frameRate,
                 bitRate = encoderParams.bitRate,
                 keyframeInterval = 1,
-                // TODO 10-bit HDR の場合は HEVC 固定にしている
-                // TODO ドルビービジョンの場合もよくわからないので HEVC で、ガンマカーブは HLG か PQ を利用する
                 codecName = when {
-                    encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP || encoderParams.codecContainerType == EncoderParams.CodecContainerType.DOLBY_VISION -> MediaFormat.MIMETYPE_VIDEO_HEVC
+                    // ドルビービジョンはよくわからないので HEVC で、ガンマカーブは HLG か PQ を利用する
+                    encoderParams.codecContainerType == EncoderParams.CodecContainerType.DOLBY_VISION -> MediaFormat.MIMETYPE_VIDEO_HEVC
+
+                    // HDR 動画を指定しているが、コーデックが対応していない場合も HEVC
+                    encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP && !encoderParams.codecContainerType.isAvailableHdr -> MediaFormat.MIMETYPE_VIDEO_HEVC
+
+                    // その他は大丈夫なはず
                     else -> encoderParams.codecContainerType.videoCodec
                 },
                 // 10-bit HDR を維持する場合。SDR 動画と SDR に変換する場合は null
                 tenBitHdrParametersOrNullSdr = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
                     val (colorStandard, colorTransfer) = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo
+
+                    val colorProfile = when (encoderParams.codecContainerType) {
+                        EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
+                        EncoderParams.CodecContainerType.VP9_OPUS_WEBM,
+                        EncoderParams.CodecContainerType.DOLBY_VISION -> null // 来ない
+
+                        // HEVC
+                        EncoderParams.CodecContainerType.HEVC_AAC_MPEG4 -> when (colorTransfer) {
+                            MediaFormat.COLOR_TRANSFER_HLG -> MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10
+                            MediaFormat.COLOR_TRANSFER_ST2084 -> MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10HDR10
+                            else -> null // ここには来ない
+                        }
+
+                        // AV1
+                        EncoderParams.CodecContainerType.AV1_AAC_MPEG4,
+                        EncoderParams.CodecContainerType.AV1_OPUS_WEBM -> when (colorTransfer) {
+                            MediaFormat.COLOR_TRANSFER_HLG -> MediaCodecInfo.CodecProfileLevel.AV1ProfileMain10
+                            MediaFormat.COLOR_TRANSFER_ST2084 -> MediaCodecInfo.CodecProfileLevel.AV1ProfileMain10HDR10
+                            else -> null // ここには来ない
+                        }
+                    }
+
                     AkariVideoEncoder.TenBitHdrParameters(
                         colorStandard = colorStandard,
                         colorTransfer = colorTransfer,
-                        codecProfile = when (colorTransfer) {
-                            MediaFormat.COLOR_TRANSFER_HLG -> MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10
-                            MediaFormat.COLOR_TRANSFER_ST2084 -> MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10HDR10 // TODO HDR10（PQ）形式は OpenGL 側のフラグメントシェーダーをまだ書いていないため動かない
-                            else -> TODO() // ありえないはず
-                        }
+                        codecProfile = colorProfile!!
                     )
                 } else null
             )

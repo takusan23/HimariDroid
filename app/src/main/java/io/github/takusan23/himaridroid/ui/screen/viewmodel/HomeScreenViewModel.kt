@@ -64,7 +64,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
             videoHeight = videoFormat.videoHeight,
             bitRate = videoFormat.bitRate,
             frameRate = videoFormat.frameRate,
-            codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
+            codecContainerType = videoFormat.codecContainerType,
             tenBitHdrOptionOrNull = if (videoFormat.tenBitHdrInfo != null) {
                 EncoderParams.TenBitHdrOption(
                     mode = EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP,

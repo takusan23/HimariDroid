@@ -240,7 +240,16 @@ object ReEncodeTool {
                             himariWebm.setVideoTrack(
                                 videoCodec = codecName,
                                 videoWidth = videoWidth,
-                                videoHeight = videoHeight
+                                videoHeight = videoHeight,
+                                // HDR 動画の場合は HLG/PQ の情報を WebM へ書き込む
+                                colorSpaceType = if (encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP) {
+                                    val colorTransfer = encoderParams.tenBitHdrOptionOrNull.tenBitHdrInfo.colorTransfer
+                                    when (colorTransfer) {
+                                        MediaFormat.COLOR_TRANSFER_HLG -> HimariWebm.ColorSpaceType.HDR_HLG
+                                        MediaFormat.COLOR_TRANSFER_ST2084 -> HimariWebm.ColorSpaceType.HDR_PQ
+                                        else -> HimariWebm.ColorSpaceType.SDR // ここには来ないはずだが
+                                    }
+                                } else HimariWebm.ColorSpaceType.SDR
                             )
                         },
                         onOutputData = { byteBuffer, bufferInfo ->

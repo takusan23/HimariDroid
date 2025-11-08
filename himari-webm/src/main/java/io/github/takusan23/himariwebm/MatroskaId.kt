@@ -56,6 +56,10 @@ enum class MatroskaId(
     SamplingFrequency(byteArrayOf(0xB5.toByte()), false, AudioTrack),
     Channels(byteArrayOf(0x9F.toByte()), false, AudioTrack),
     BitDepth(byteArrayOf(0x62.toByte(), 0x64.toByte()), false, AudioTrack),
+    Colour(byteArrayOf(0x55.toByte(), 0xB0.toByte()), true, VideoTrack),
+    MatrixCoefficients(byteArrayOf(0x55.toByte(), 0xB1.toByte()), false, Colour),
+    TransferCharacteristics(byteArrayOf(0x55, 0xBA.toByte()), false, Colour),
+    Primaries(byteArrayOf(0x55.toByte(), 0xBB.toByte()), false, Colour),
 
     Cues(byteArrayOf(0x1C.toByte(), 0x53.toByte(), 0xBB.toByte(), 0x6B.toByte()), true, Segment),
     CuePoint(byteArrayOf(0xBB.toByte()), true, Cues),

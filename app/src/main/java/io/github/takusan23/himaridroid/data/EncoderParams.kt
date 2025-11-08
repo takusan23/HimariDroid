@@ -49,7 +49,15 @@ data class EncoderParams(
          * iPhone の HDR がドルビービジョン。
          * ドルビービジョンは本来ガンマカーブが PQ である。が、一方スマホに搭載されているドルビービジョンは Profile 8.4 とか呼ばれているもので HLG と互換性がある
          */
-        DOLBY_VISION(MediaFormat.MIMETYPE_VIDEO_HEVC, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4)
+        DOLBY_VISION(MediaFormat.MIMETYPE_VIDEO_HEVC, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4);
+
+        /** HDR 動画に対応しているか */
+        val isAvailableHdr
+            get() = when (this) {
+                AVC_AAC_MPEG4, VP9_OPUS_WEBM -> false
+                HEVC_AAC_MPEG4, AV1_AAC_MPEG4, AV1_OPUS_WEBM, DOLBY_VISION -> true // ただしドルビービジョンは HLG/PQ へフォールバックされる
+            }
+
     }
 
     /** コンテナ */

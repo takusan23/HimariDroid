@@ -68,9 +68,45 @@ class HimariWebm(
     fun setVideoTrack(
         videoCodec: String,
         videoWidth: Int,
-        videoHeight: Int
+        videoHeight: Int,
+        colorSpaceType: ColorSpaceType
     ) {
         videoTrackIndex = trackCount++
+
+        // SDR も HDR も共通している
+        val sdrHdrCommonElementList = byteArrayOf(
+            *MatroskaElement(MatroskaId.PixelWidth, videoWidth.toByteArray()).toEbmlByteArray(),
+            *MatroskaElement(MatroskaId.PixelHeight, videoHeight.toByteArray()).toEbmlByteArray()
+        )
+
+        // HDR の場合は色空間とガンマカーブを追加で渡す（HLG or PQ）
+        // SDR の場合はなくても動いてるんで何もしない
+        val videoTrackChildren = when (colorSpaceType) {
+            ColorSpaceType.SDR -> sdrHdrCommonElementList
+
+            ColorSpaceType.HDR_HLG -> sdrHdrCommonElementList + byteArrayOf(
+                *MatroskaElement(
+                    MatroskaId.Colour,
+                    byteArrayOf(
+                        *MatroskaElement(MatroskaId.MatrixCoefficients, 9.toByteArray()).toEbmlByteArray(),
+                        *MatroskaElement(MatroskaId.TransferCharacteristics, 18.toByteArray()).toEbmlByteArray(),
+                        *MatroskaElement(MatroskaId.Primaries, 9.toByteArray()).toEbmlByteArray()
+                    )
+                ).toEbmlByteArray()
+            )
+
+            ColorSpaceType.HDR_PQ -> sdrHdrCommonElementList + byteArrayOf(
+                *MatroskaElement(
+                    MatroskaId.Colour,
+                    byteArrayOf(
+                        *MatroskaElement(MatroskaId.MatrixCoefficients, 9.toByteArray()).toEbmlByteArray(),
+                        *MatroskaElement(MatroskaId.TransferCharacteristics, 16.toByteArray()).toEbmlByteArray(),
+                        *MatroskaElement(MatroskaId.Primaries, 9.toByteArray()).toEbmlByteArray()
+                    )
+                ).toEbmlByteArray()
+            )
+        }
+
         videoTrack = MatroskaElement(
             MatroskaId.TrackEntry,
             byteArrayOf(
@@ -78,13 +114,7 @@ class HimariWebm(
                 *MatroskaElement(MatroskaId.TrackUID, videoTrackIndex.toByteArray()).toEbmlByteArray(),
                 *MatroskaElement(MatroskaId.TrackType, VIDEO_TRACK_TYPE.toByteArray()).toEbmlByteArray(),
                 *MatroskaElement(MatroskaId.CodecID, videoCodec.toByteArray()).toEbmlByteArray(),
-                *MatroskaElement(
-                    MatroskaId.VideoTrack,
-                    byteArrayOf(
-                        *MatroskaElement(MatroskaId.PixelWidth, videoWidth.toByteArray()).toEbmlByteArray(),
-                        *MatroskaElement(MatroskaId.PixelHeight, videoHeight.toByteArray()).toEbmlByteArray()
-                    )
-                ).toEbmlByteArray()
+                *MatroskaElement(MatroskaId.VideoTrack, videoTrackChildren).toEbmlByteArray()
             )
         )
     }
@@ -343,6 +373,36 @@ class HimariWebm(
             }
         }
         return seekHead
+    }
+
+    /** SDR か HDR かを表す */
+    enum class ColorSpaceType {
+
+        /**
+         * SDR 動画
+         * よくわからないという場合はこれを。なぜならほとんどの動画は SDR だから。
+         *
+         * 色空間: Rec.709
+         */
+        SDR,
+
+        /**
+         * HDR 動画で、ガンマカーブが HLG
+         * HDR10、HDR10+ 表記がない HDR 動画はこれ
+         *
+         * 色空間: Rec.2020
+         * ガンマカーブ: HLG
+         */
+        HDR_HLG,
+
+        /**
+         * HDR 動画で、ガンマカーブが PQ (SMPTE ST 2084)
+         * HDR10、HDR10+ 動画はこれを利用している
+         *
+         * 色空間: Rec.2020
+         * ガンマカーブ: PQ (SMPTE ST 2084)
+         */
+        HDR_PQ
     }
 
     companion object {

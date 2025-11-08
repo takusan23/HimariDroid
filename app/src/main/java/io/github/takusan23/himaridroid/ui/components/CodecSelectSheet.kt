@@ -5,17 +5,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -25,7 +25,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -44,41 +43,44 @@ private data class CodecDescription(
 @Composable
 fun CodecSelectSheet(
     modifier: Modifier = Modifier,
-    isEnable: Boolean = true,
-    codecContainerType: EncoderParams.CodecContainerType,
+    isHdrOnly: Boolean,
+    currentCodecContainerType: EncoderParams.CodecContainerType,
     onSelectCodec: (EncoderParams.CodecContainerType) -> Unit
 ) {
-    val context = LocalContext.current
-
     // コーデック
-    val codecDescriptionList = remember {
-        listOf(
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
-                title = context.getString(R.string.codec_select_sheet_avc_mp4_title),
-                description = context.getString(R.string.codec_select_sheet_avc_mp4_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.HEVC_AAC_MPEG4,
-                title = context.getString(R.string.codec_select_sheet_hevc_mp4_title),
-                description = context.getString(R.string.codec_select_sheet_hevc_mp4_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.AV1_AAC_MPEG4,
-                title = context.getString(R.string.codec_select_sheet_av1_mp4_title),
-                description = context.getString(R.string.codec_select_sheet_av1_mp4_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.VP9_OPUS_WEBM,
-                title = context.getString(R.string.codec_select_sheet_vp9_webm_title),
-                description = context.getString(R.string.codec_select_sheet_vp9_webm_description)
-            ),
-            CodecDescription(
-                codecContainerType = EncoderParams.CodecContainerType.AV1_OPUS_WEBM,
-                title = context.getString(R.string.codec_select_sheet_av1_webm_title),
-                description = context.getString(R.string.codec_select_sheet_av1_webm_description)
-            )
+    val codecDescriptionList = listOf(
+        CodecDescription(
+            codecContainerType = EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
+            title = stringResource(R.string.codec_select_sheet_avc_mp4_title),
+            description = stringResource(R.string.codec_select_sheet_avc_mp4_description)
+        ),
+        CodecDescription(
+            codecContainerType = EncoderParams.CodecContainerType.HEVC_AAC_MPEG4,
+            title = stringResource(R.string.codec_select_sheet_hevc_mp4_title),
+            description = stringResource(R.string.codec_select_sheet_hevc_mp4_description)
+        ),
+        CodecDescription(
+            codecContainerType = EncoderParams.CodecContainerType.AV1_AAC_MPEG4,
+            title = stringResource(R.string.codec_select_sheet_av1_mp4_title),
+            description = stringResource(R.string.codec_select_sheet_av1_mp4_description)
+        ),
+        CodecDescription(
+            codecContainerType = EncoderParams.CodecContainerType.VP9_OPUS_WEBM,
+            title = stringResource(R.string.codec_select_sheet_vp9_webm_title),
+            description = stringResource(R.string.codec_select_sheet_vp9_webm_description)
+        ),
+        CodecDescription(
+            codecContainerType = EncoderParams.CodecContainerType.AV1_OPUS_WEBM,
+            title = stringResource(R.string.codec_select_sheet_av1_webm_title),
+            description = stringResource(R.string.codec_select_sheet_av1_webm_description)
         )
+    ).filter {
+        // HDR のみの絞り込み
+        if (isHdrOnly) {
+            it.codecContainerType.isAvailableHdr
+        } else {
+            true
+        }
     }
 
     // コーデック選択ボトムシート
@@ -111,7 +113,7 @@ fun CodecSelectSheet(
                             },
                             shape = when (index) {
                                 0 -> RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 5.dp, bottomEnd = 5.dp)
-                                EncoderParams.CodecContainerType.entries.size - 1 -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
+                                codecDescriptionList.size - 1 -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
                                 else -> RoundedCornerShape(5.dp)
                             }
                         ) {
@@ -130,7 +132,7 @@ fun CodecSelectSheet(
                                         fontSize = 14.sp
                                     )
                                 }
-                                if (codecContainerType == codecDescription.codecContainerType) {
+                                if (currentCodecContainerType == codecDescription.codecContainerType) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.done_24px),
                                         contentDescription = null
@@ -142,7 +144,7 @@ fun CodecSelectSheet(
                 }
 
                 // 下にスペース欲しい、、ほしくない？
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.navigationBarsPadding())
             }
         }
     }
@@ -158,25 +160,13 @@ fun CodecSelectSheet(
         ) {
             OutlinedTextField(
                 modifier = Modifier
-                    .menuAnchor(
-                        type = MenuAnchorType.PrimaryNotEditable,
-                        enabled = isEnable
-                    )
+                    .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                     .fillMaxWidth(),
-                value = codecContainerType.name,
+                value = currentCodecContainerType.name,
                 onValueChange = { /* do nothing */ },
                 readOnly = true,
-                enabled = isEnable,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isOpen.value) },
                 label = { Text(text = stringResource(id = R.string.code_select_sheet_select_button)) }
-            )
-        }
-
-        // TODO 今のところ 10-bit HDR は動画コーデック HEVC のみ
-        if (!isEnable) {
-            DescriptionCard(
-                text = stringResource(id = R.string.code_select_sheet_select_ten_bit_hdr_notice),
-                iconResId = R.drawable.info_24px
             )
         }
     }
