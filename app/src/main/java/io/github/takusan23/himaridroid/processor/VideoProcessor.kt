@@ -146,13 +146,17 @@ object VideoProcessor {
 
                     akariGraphicsProcessor.drawLoop {
                         // シークして動画フレームを描画する
-                        val isSuccessDecodeFrame = akariVideoDecoder.seekTo(currentPositionMs)
-                        drawSurfaceTexture(akariGraphicsSurfaceTexture, nullOrTextureUpdateTimeoutMs = 500)
+                        // 既存のフレームを使い回す場合（つまり 30fps の動画で 60fps 指定で再エンコードを要求されている時）は nullOrTextureUpdateTimeoutMs を null にする
+                        val seekResult = akariVideoDecoder.seekTo(currentPositionMs)
+                        drawSurfaceTexture(
+                            akariSurfaceTexture = akariGraphicsSurfaceTexture,
+                            nullOrTextureUpdateTimeoutMs = if (seekResult.isSuccessful) null else 500
+                        )
                         onProgressCurrentPositionMs(akariVideoDecoder.videoDurationMs, currentPositionMs)
 
                         // 次フレームがあるかとループ続行か
                         loopContinueData.currentFrameNanoSeconds = currentPositionMs * AkariGraphicsProcessor.LoopContinueData.MILLI_SECONDS_TO_NANO_SECONDS
-                        loopContinueData.isRequestNextFrame = isSuccessDecodeFrame.isSuccessful
+                        loopContinueData.isRequestNextFrame = seekResult.isSuccessful
 
                         // 動画時間を進める
                         currentPositionMs += oneFrameMs
