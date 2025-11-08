@@ -57,11 +57,10 @@
     <string name="video_select_info_hdr_st2084">ST2084</string>
     <string name="ten_bit_hdr_option_menu_title">10-bit HDR video conversion menu</string>
     <string name="ten_bit_hdr_option_menu_keep_title">Maintain HDR</string>
-    <string name="ten_bit_hdr_option_menu_keep_description">Converts while maintaining HDR. For now, the codec is limited to HEVC (H.265).</string>
+    <string name="ten_bit_hdr_option_menu_keep_description">Converts to HDR as is. Only codecs that can encode 10-bit HDR video can be used.</string>
     <string name="ten_bit_hdr_option_menu_to_sdr_title">Convert to SDR</string>
     <string name="ten_bit_hdr_option_menu_to_sdr_description">Converts to SDR. If your device supports the function to convert to a similar color, you can use it, but it is not available on all devices. If you want to change the codec, you must choose this option for now.</string>
     <string name="ten_bit_hdr_option_menu_description">Supports 10-bit HDR re-encoding.</string>
     <string name="encoder_progress_progress_video_duration">Video duration</string>
-    <string name="code_select_sheet_select_ten_bit_hdr_notice">For now, 10-bit HDR video re-encoding is fixed to HEVC, see the HDR menu for details.</string>
     <string name="video_select_info_detect_dolby_vision_fallback">Dolby Vision detected. Since Dolby Vision is not supported, the gamma curve will be HLG or PQ, whichever is compatible. I don\'t think there will be much difference in image quality.</string>
 </resources>

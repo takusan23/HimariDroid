@@ -53,11 +53,10 @@
     <string name="video_select_info_hdr_st2084">ST2084</string>
     <string name="ten_bit_hdr_option_menu_title">10 ビット HDR 動画の変換メニュー</string>
     <string name="ten_bit_hdr_option_menu_keep_title">HDR を維持する</string>
-    <string name="ten_bit_hdr_option_menu_keep_description">HDR のまま変換します。今のところコーデックは HEVC(H.265) に限定されます。</string>
+    <string name="ten_bit_hdr_option_menu_keep_description">HDR のまま変換します。10 ビット HDR 動画がエンコードできるコーデックのみ利用できます。</string>
     <string name="ten_bit_hdr_option_menu_to_sdr_title">SDR に変換する</string>
     <string name="ten_bit_hdr_option_menu_to_sdr_description">SDR に変換します。近しい色に変換する機能に対応していれば利用しますが、すべての端末で利用できるわけではありません。コーデックを変更したい場合は今のところこちらを選ぶ必要があります。</string>
     <string name="ten_bit_hdr_option_menu_description">10 ビット HDR の再エンコードに対応しました。</string>
     <string name="encoder_progress_progress_video_duration">動画の時間</string>
-    <string name="code_select_sheet_select_ten_bit_hdr_notice">今のところ、10 ビット HDR 動画の再エンコードは HEVC に固定されます。詳しくは HDR のメニューを見てください。</string>
     <string name="video_select_info_detect_dolby_vision_fallback">ドルビービジョンが検出されました。ドルビービジョンには対応していないため、ガンマカーブが HLG もしくは PQ のどちらか互換性がある方が使われます。画質はあんまり変わらないと思います。</string>
 </resources>
