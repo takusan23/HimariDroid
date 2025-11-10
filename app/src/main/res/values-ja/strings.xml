@@ -38,10 +38,10 @@
     <string name="home_screen_bottombar_title">しばらく時間がかかります。\n処理中はアプリを離れても大丈夫です。</string>
     <string name="home_screen_bottombar_start">開始</string>
     <string name="codec_select_sheet_avc_mp4_description">サイズ気にしないならコレ。大体どこでも再生できる。ビットレートを高くしないと画質があまり良くならない。</string>
-    <string name="codec_select_sheet_hevc_mp4_description">AVC の後継。理論値で AVC の半分のビットレートで同等の画質に出来るみたい（半分のファイルサイズになる）。特許問題のせいか再生できない端末もある。</string>
-    <string name="codec_select_sheet_av1_mp4_description">HEVC の対抗馬。HEVC と同等かそれ以上の性能。特許問題をクリアしたロイヤリティーフリー。新しいので普及はこれから。MP4 形式ではありますが、AV1 がデコードできるプレイヤーが必要です。</string>
-    <string name="codec_select_sheet_vp9_webm_description">WebM 形式の動画が必要ならこれ。AV1 が新しくて選べない場合はこちら。</string>
-    <string name="codec_select_sheet_av1_webm_description">AV1 + AAC + MP4 と同じですが、音声コーデックとコンテナが違います。WebM 形式で AV1 エンコードされた動画が欲しい場合に。拡張子 MP4 だと紛らわしい場合はこっちで。</string>
+    <string name="codec_select_sheet_hevc_mp4_description">AVC の後継。理論値で AVC の半分のビットレートで同等の画質に出来るみたい（半分のファイルサイズになる）。10 ビット HDR 動画が扱えるため、カメラアプリの HDR 動画撮影でよく使われています。特許問題が複雑で再生できない環境があります。</string>
+    <string name="codec_select_sheet_av1_mp4_description">HEVC の対抗馬である AV1 コーデックを利用します。HEVC と同等かそれ以上の性能と言われてます。HEVC と同じく 10 ビット HDR 動画が扱えます。新しいので普及はこれから。AV1 はオープンでありロイヤリティフリーですが、AAC と MP4 は別途調査が必要です。MP4 形式ではありますが、AV1 がデコードできるプレイヤーが必要です。</string>
+    <string name="codec_select_sheet_vp9_webm_description">WebM 形式の動画が必要ならこれ。VP9 + Opus + WebM はすべてオープンであり、ロイヤリティフリーで利用できます。オープンな技術が好きな人はどうぞ。</string>
+    <string name="codec_select_sheet_av1_webm_description">AV1 コーデックと WebM 形式が欲しい場合。VP9 との違いは、AV1 コーデックを採用する点と、10 ビット HDR 動画を扱うことが出来る点です。同様にこれらはオープンであり、ロイヤリティフリーで利用できます。欠点としては HEVC と違いハードウェアエンコーダーがほぼ搭載されないため時間がかかります。</string>
     <string name="code_select_sheet_title">コーデック (映像・音声)  / コンテナ 形式の設定</string>
     <string name="code_select_sheet_select_button">コーデック・コンテナの選択</string>
     <string name="setting_open_privacy_policy_title">プライバシーポリシーを開きます</string>
