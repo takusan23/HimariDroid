@@ -150,7 +150,7 @@ object VideoProcessor {
                         val seekResult = akariVideoDecoder.seekTo(currentPositionMs)
                         drawSurfaceTexture(
                             akariSurfaceTexture = akariGraphicsSurfaceTexture,
-                            nullOrTextureUpdateTimeoutMs = if (seekResult.isSuccessful) null else 500
+                            nullOrTextureUpdateTimeoutMs = if (seekResult.isNewFrame) 500 else null
                         )
                         onProgressCurrentPositionMs(akariVideoDecoder.videoDurationMs, currentPositionMs)
 
