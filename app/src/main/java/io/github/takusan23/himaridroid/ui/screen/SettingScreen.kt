@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.lifecycle.compose.dropUnlessResumed
 import io.github.takusan23.himaridroid.R
 
 private const val GITHUB_REPOSITORY_URL = "https://github.com/takusan23/HimariDroid"
@@ -38,7 +39,7 @@ fun SettingScreen(
             TopAppBar(
                 title = { Text(text = stringResource(id = R.string.setting_screen)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = dropUnlessResumed(block = onBack)) {
                         Icon(painter = painterResource(id = R.drawable.arrow_back_24px), contentDescription = null)
                     }
                 }
