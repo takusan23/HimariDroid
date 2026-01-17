@@ -31,7 +31,7 @@ object ReEncodeTool {
     private const val OPUS_AAC_SAMPLING_RATE = 48_000 // Opus は 44.1k 対応していないので、48k にアップサンプリングする
 
     suspend fun encoder(
-        context: Context,
+        mediaTool: MediaTool,
         inputUri: Uri,
         encoderParams: EncoderParams,
         onProgressCurrentPositionMs: (videoDurationMs: Long, currentPositionMs: Long) -> Unit
@@ -39,7 +39,7 @@ object ReEncodeTool {
         val resultFile = if (encoderParams.codecContainerType.containerType == EncoderParams.ContainerType.MPEG_4) {
             // MP4 なら MediaMuxer
             startEncodeToMp4(
-                context = context,
+                mediaTool = mediaTool,
                 inputUri = inputUri,
                 onProgressCurrentPositionMs = onProgressCurrentPositionMs,
                 encoderParams = encoderParams
@@ -47,15 +47,14 @@ object ReEncodeTool {
         } else {
             // WebM は自前実装
             startEncodeToWebm(
-                context = context,
+                mediaTool = mediaTool,
                 inputUri = inputUri,
                 onProgressCurrentPositionMs = onProgressCurrentPositionMs,
                 encoderParams = encoderParams
             )
         }
         // 端末の動画フォルダにコピーする
-        MediaTool.saveToVideoFolder(
-            context,
+        mediaTool.saveToVideoFolder(
             resultFile,
             encoderParams.codecContainerType.containerType
         )
@@ -64,19 +63,19 @@ object ReEncodeTool {
 
     @SuppressLint("WrongConstant")
     private suspend fun startEncodeToMp4(
-        context: Context,
+        mediaTool: MediaTool,
         inputUri: Uri,
         encoderParams: EncoderParams,
         onProgressCurrentPositionMs: (videoDurationMs: Long, currentPositionMs: Long) -> Unit
     ): File {
         // 一時的にファイルを置いておきたいので
-        val tempFolder = context.getExternalFilesDir(null)!!.resolve("temp_folder").apply { mkdir() }
+        val tempFolder = mediaTool.createFolder("temp_folder")
         // 出力先
-        val resultFile = context.getExternalFilesDir(null)!!.resolve(encoderParams.fileNameAndExtension)
+        val resultFile = mediaTool.createFile(encoderParams.fileNameAndExtension)
         val mediaMuxer = MediaMuxer(resultFile.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
 
         // 音声トラックがない場合は null
-        val audioTrackPairOrNull = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.AUDIO)
+        val audioTrackPairOrNull = mediaTool.createMediaExtractor(inputUri, track = MediaTool.Track.AUDIO)
 
         coroutineScope {
 
@@ -144,8 +143,8 @@ object ReEncodeTool {
                     // 0 スタートになるように調整
                     var startPresentationTime = -1L
                     encodeAudio(
+                        mediaTool = mediaTool,
                         tempFolder = tempFolder,
-                        context = context,
                         inputUri = inputUri,
                         codec = MediaFormat.MIMETYPE_AUDIO_AAC,
                         outputSamplingRate = OPUS_AAC_SAMPLING_RATE,
@@ -177,7 +176,7 @@ object ReEncodeTool {
                 var videoIndex = -1
                 // 再エンコードをする
                 VideoProcessor.start(
-                    context = context,
+                    mediaTool = mediaTool,
                     inputUri = inputUri,
                     encoderParams = encoderParams,
                     onOutputFormat = { mediaFormat ->
@@ -206,15 +205,15 @@ object ReEncodeTool {
 
     /** エンコードして webm に保存する */
     private suspend fun startEncodeToWebm(
-        context: Context,
+        mediaTool: MediaTool,
         inputUri: Uri,
         encoderParams: EncoderParams,
         onProgressCurrentPositionMs: (videoDurationMs: Long, currentPositionMs: Long) -> Unit
     ): File {
         // 一時的にファイルを置いておきたいので
-        val tempFolder = context.getExternalFilesDir(null)!!.resolve("temp_folder").apply { mkdir() }
+        val tempFolder = mediaTool.createFolder("temp_folder")
         // 出力先
-        val resultFile = context.getExternalFilesDir(null)!!.resolve(encoderParams.fileNameAndExtension)
+        val resultFile = mediaTool.createFile(encoderParams.fileNameAndExtension)
         // WebM は自前実装
         // himari-webm 参照
         val himariWebm = HimariWebm(tempFolder, resultFile)
@@ -225,7 +224,7 @@ object ReEncodeTool {
                 // 映像の再エンコード
                 launch {
                     VideoProcessor.start(
-                        context = context,
+                        mediaTool = mediaTool,
                         inputUri = inputUri,
                         encoderParams = encoderParams,
                         onOutputFormat = { mediaFormat ->
@@ -268,7 +267,7 @@ object ReEncodeTool {
                 // 音声の再エンコード
                 // Opus にするため
                 launch {
-                    val (mediaExtractor, mediaFormat) = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.AUDIO) ?: return@launch
+                    val (mediaExtractor, mediaFormat) = mediaTool.createMediaExtractor(inputUri, MediaTool.Track.AUDIO) ?: return@launch
                     val audioCodecMimeType = mediaFormat.getString(MediaFormat.KEY_MIME)
                     if (audioCodecMimeType == encoderParams.codecContainerType.audioCodec) {
                         // もともと Opus の場合は入れ直すだけにする
@@ -307,8 +306,8 @@ object ReEncodeTool {
                         // 0 スタートになるように調整
                         var startPresentationTime = -1L
                         encodeAudio(
+                            mediaTool = mediaTool,
                             tempFolder = tempFolder,
-                            context = context,
                             inputUri = inputUri,
                             outputSamplingRate = OPUS_AAC_SAMPLING_RATE,
                             codec = MediaFormat.MIMETYPE_AUDIO_OPUS,
@@ -348,8 +347,8 @@ object ReEncodeTool {
     }
 
     private suspend fun encodeAudio(
+        mediaTool: MediaTool,
         tempFolder: File,
-        context: Context,
         inputUri: Uri,
         codec: String,
         outputSamplingRate: Int,
@@ -357,7 +356,7 @@ object ReEncodeTool {
         onOutputData: suspend (ByteBuffer, MediaCodec.BufferInfo) -> Unit
     ) {
         // 音声トラックがない場合は何もせず return
-        val (mediaExtractor, inputAudioFormat) = MediaTool.createMediaExtractor(context, inputUri, MediaTool.Track.AUDIO) ?: return
+        val (mediaExtractor, inputAudioFormat) = mediaTool.createMediaExtractor(inputUri, MediaTool.Track.AUDIO) ?: return
         mediaExtractor.release()
 
         val rawFile = tempFolder.resolve(TEMP_AUDIO_RAW_FILE)
@@ -370,7 +369,7 @@ object ReEncodeTool {
         try {
             // PCM にする
             AudioEncodeDecodeProcessor.decode(
-                input = inputUri.toAkariCoreInputOutputData(context),
+                input = with(mediaTool) { inputUri.toAkariCoreInputOutputData() },
                 output = rawFile.toAkariCoreInputOutputData(),
                 onOutputFormat = { decoderOutputMediaFormat = it }
             )

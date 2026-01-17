@@ -3,16 +3,24 @@ package io.github.takusan23.himaridroid.processor
 import android.content.Context
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.contentValuesOf
+import io.github.takusan23.akaricore.common.AkariCoreInputOutput
 import io.github.takusan23.himaridroid.data.EncoderParams
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-object MediaTool {
+/**
+ * ファイル操作系
+ * Koin が DI してくれるので、インスタンスはそっちから取得できます。
+ *
+ * @param context Koin により渡されます
+ */
+class MediaTool(private val context: Context) {
 
     enum class Track(val mimeTypePrefix: String) {
         VIDEO("video/"),
@@ -25,7 +33,6 @@ object MediaTool {
      * @return [MediaExtractor]と選択したトラックの[MediaFormat]。選択したトラックがない場合は null
      */
     fun createMediaExtractor(
-        context: Context,
         uri: Uri,
         track: Track
     ): Pair<MediaExtractor, MediaFormat>? {
@@ -49,9 +56,19 @@ object MediaTool {
         return mediaExtractor to mediaFormat
     }
 
+    /**
+     * [MediaMetadataRetriever]を作る。release() は呼び出し側で！
+     *
+     * @param uri 読み込むファイルの Uri
+     */
+    fun createMediaMetadataRetriever(uri: Uri): MediaMetadataRetriever {
+        return MediaMetadataRetriever().apply {
+            context.contentResolver.openFileDescriptor(uri, "r")?.use { setDataSource(it.fileDescriptor) }
+        }
+    }
+
     /** 端末の動画フォルダに保存する */
     suspend fun saveToVideoFolder(
-        context: Context,
         file: File,
         containerType: EncoderParams.ContainerType
     ) = withContext(Dispatchers.IO) {
@@ -75,15 +92,29 @@ object MediaTool {
     }
 
     /** Uri のファイル名を取得する */
-    suspend fun getFileName(
-        context: Context,
-        uri: Uri
-    ) = withContext(Dispatchers.IO) {
+    suspend fun getFileName(uri: Uri): String = withContext(Dispatchers.IO) {
         context.contentResolver.query(uri, arrayOf(MediaStore.Images.Media.DISPLAY_NAME), null, null, null)!!.use { cursor ->
             cursor.moveToFirst()
             cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME))
         }
     }
+
+    /** [Context.getExternalFilesDir] の中にフォルダを作る TODO media...tool... の中にあるべきではないかも */
+    fun createFolder(name: String): File {
+        return context.getExternalFilesDir(null)!!.resolve(name).apply { mkdir() }
+    }
+
+    /** [Context.getExternalFilesDir] の中にファイルを作る TODO media...tool... の中にあるべきではないかも */
+    fun createFile(name: String): File {
+        return context.getExternalFilesDir(null)!!.resolve(name).apply { createNewFile() }
+    }
+
+    /**
+     * [toAkariCoreInputOutputData]を呼び出す
+     *
+     * with(MediaTool) { uri.toAkariCoreInputOutputData() }
+     */
+    fun Uri.toAkariCoreInputOutputData() = AkariCoreInputOutput.AndroidUri(context, this)
 
     /**
      * [MediaExtractor]からトラック（映像 or 音声）の番号（インデックス）と[MediaFormat]を[Pair]で返す。

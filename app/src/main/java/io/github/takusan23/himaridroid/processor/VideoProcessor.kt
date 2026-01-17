@@ -1,11 +1,9 @@
 package io.github.takusan23.himaridroid.processor
 
-import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.net.Uri
-import io.github.takusan23.akaricore.common.toAkariCoreInputOutputData
 import io.github.takusan23.akaricore.graphics.AkariGraphicsProcessor
 import io.github.takusan23.akaricore.graphics.AkariGraphicsSurfaceTexture
 import io.github.takusan23.akaricore.graphics.data.AkariGraphicsProcessorColorSpaceType
@@ -24,7 +22,7 @@ object VideoProcessor {
 
     /** 再エンコードする */
     suspend fun start(
-        context: Context,
+        mediaTool: MediaTool,
         inputUri: Uri,
         encoderParams: EncoderParams,
         onOutputFormat: suspend (MediaFormat) -> Unit,
@@ -124,7 +122,7 @@ object VideoProcessor {
         val akariVideoDecoder = AkariVideoDecoder().apply {
             // トーンマッピング機能に対応している機種であれば利用。非対応なら白っぽくなるかも。
             prepare(
-                input = inputUri.toAkariCoreInputOutputData(context),
+                input = with(mediaTool) { inputUri.toAkariCoreInputOutputData() },
                 outputSurface = akariGraphicsSurfaceTexture.surface,
                 isSdrToneMapping = encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.TO_SDR
             )

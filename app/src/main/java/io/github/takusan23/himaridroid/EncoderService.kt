@@ -19,6 +19,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import io.github.takusan23.himaridroid.data.EncoderParams
+import io.github.takusan23.himaridroid.processor.MediaTool
 import io.github.takusan23.himaridroid.processor.ReEncodeTool
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancelChildren
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import java.lang.ref.WeakReference
 
 /** エンコードするためのフォアグラウンドサービス。時間がかかるのでフォアグラウンドサービスでやる。 */
@@ -38,6 +40,9 @@ class EncoderService : Service() {
 
     private val _isEncoding = MutableStateFlow(false)
     private val _progressCurrentPositionMs = MutableStateFlow<ReEncodeProgressData?>(null)
+
+    /** Koin によって DI されます */
+    private val mediaTool by inject<MediaTool>()
 
     /** エンコード中かどうか */
     val isEncoding = _isEncoding.asStateFlow()
@@ -95,7 +100,7 @@ class EncoderService : Service() {
                 _isEncoding.value = true
 
                 ReEncodeTool.encoder(
-                    context = this@EncoderService,
+                    mediaTool = mediaTool,
                     inputUri = inputUri,
                     encoderParams = encoderParams,
                     onProgressCurrentPositionMs = { videoDurationMs, currentPositionMs ->

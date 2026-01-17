@@ -28,10 +28,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.takusan23.himaridroid.EncoderService
 import io.github.takusan23.himaridroid.R
 import io.github.takusan23.himaridroid.data.EncoderParams
+import io.github.takusan23.himaridroid.data.HomeScreenSnackbarType
 import io.github.takusan23.himaridroid.data.VideoFormat
 import io.github.takusan23.himaridroid.ui.components.AudioInfo
 import io.github.takusan23.himaridroid.ui.components.EncodingProgress
@@ -39,11 +39,12 @@ import io.github.takusan23.himaridroid.ui.components.HomeScreenBottomBar
 import io.github.takusan23.himaridroid.ui.components.VideoEncoderSetting
 import io.github.takusan23.himaridroid.ui.components.VideoSelect
 import io.github.takusan23.himaridroid.ui.screen.viewmodel.HomeScreenViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeScreenViewModel = viewModel(),
+    viewModel: HomeScreenViewModel = koinViewModel(),
     onNavigate: (NavigationPaths) -> Unit
 ) {
     val context = LocalContext.current
@@ -60,10 +61,13 @@ fun HomeScreen(
     val reEncodeProgressData = encoderService.value?.progressCurrentPositionMs?.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
-        viewModel.snackbarMessage.collect { message ->
-            if (message == null) {
+        viewModel.snackbarType.collect { type ->
+            if (type == null) {
                 snackbarState.currentSnackbarData?.dismiss()
             } else {
+                val message = when (type) {
+                    is HomeScreenSnackbarType.VideoFileParseError -> "${context.getString(R.string.home_screen_error_codec_container)} ${type.codec} / ${type.container}"
+                }
                 snackbarState.showSnackbar(message)
                 viewModel.dismissSnackbar()
             }

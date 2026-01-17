@@ -1,7 +1,5 @@
 package io.github.takusan23.himaridroid.data
 
-import io.github.takusan23.himaridroid.data.VideoFormat.TenBitHdrInfo
-
 /**
  * 入力した動画のフォーマットとかの情報
  *

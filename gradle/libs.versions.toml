@@ -13,6 +13,7 @@ composeBom = "2025.12.01"
 nav3Core = "1.0.0"
 lifecycleViewmodelNav3 = "2.10.0"
 akaricore = "6.3.1"
+koin-bom = "4.2.0-beta2" # nav3 のため
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +36,10 @@ androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecy
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 akaricore = { module = "io.github.takusan23:akaricore", version.ref = "akaricore" }
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-android = { module = "io.insert-koin:koin-android" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
+koin-navigation3 = { module = "io.insert-koin:koin-compose-navigation3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

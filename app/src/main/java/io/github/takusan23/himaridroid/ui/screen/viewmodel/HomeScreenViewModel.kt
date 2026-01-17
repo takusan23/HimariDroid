@@ -1,16 +1,14 @@
 package io.github.takusan23.himaridroid.ui.screen.viewmodel
 
-import android.app.Application
-import android.content.Context
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.takusan23.himaridroid.EncoderService
-import io.github.takusan23.himaridroid.R
 import io.github.takusan23.himaridroid.data.EncoderParams
+import io.github.takusan23.himaridroid.data.HomeScreenSnackbarType
 import io.github.takusan23.himaridroid.data.VideoFormat
 import io.github.takusan23.himaridroid.processor.MediaTool
 import kotlinx.coroutines.Dispatchers
@@ -20,13 +18,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Stable
-class HomeScreenViewModel(private val application: Application) : AndroidViewModel(application) {
-    private val context: Context
-        get() = application.applicationContext
+class HomeScreenViewModel(private val mediaTool: MediaTool) : ViewModel() {
 
     private val _inputVideoFormat = MutableStateFlow<VideoFormat?>(null)
     private val _encoderParams = MutableStateFlow<EncoderParams?>(null)
-    private val _snackbarMessage = MutableStateFlow<String?>(null)
+    private val _snackbarType = MutableStateFlow<HomeScreenSnackbarType?>(null)
 
     private var inputUri: Uri? = null
 
@@ -37,7 +33,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
     val encoderParams = _encoderParams.asStateFlow()
 
     /** SnackBar */
-    val snackbarMessage = _snackbarMessage.asStateFlow()
+    val snackbarType = _snackbarType.asStateFlow()
 
     /** ファイル選択時に呼ばれる */
     fun setInputVideoUri(uri: Uri) {
@@ -76,7 +72,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
 
     /** Snackbar を消す */
     fun dismissSnackbar() {
-        _snackbarMessage.value = null
+        _snackbarType.value = null
     }
 
     /** エンコーダーを開始する */
@@ -89,14 +85,12 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
     /** 解析できない場合は null */
     private suspend fun extractInputVideoFormat(uri: Uri): VideoFormat? = withContext(Dispatchers.IO) {
         // 流石に映像トラックがないってことは
-        val (extractor, mediaFormat) = MediaTool.createMediaExtractor(context, uri, MediaTool.Track.VIDEO) ?: return@withContext null
+        val (extractor, mediaFormat) = mediaTool.createMediaExtractor(uri, MediaTool.Track.VIDEO) ?: return@withContext null
 
         // コーデックとコンテナを探す
         // 拡張子は嘘をつく可能性があるので、実際のバイナリから見る
         val codec = mediaFormat.getString(MediaFormat.KEY_MIME)
-        val metadataRetriever = MediaMetadataRetriever().apply {
-            context.contentResolver.openFileDescriptor(uri, "r")?.use { setDataSource(it.fileDescriptor) }
-        }
+        val metadataRetriever = mediaTool.createMediaMetadataRetriever(uri)
 
         // 縦動画の場合、rotation で回転情報が入っていれば width / height を入れ替える
         val _videoHeight = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT)
@@ -133,7 +127,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
 
         // 面倒なのでエラーに倒す
         if (codecContainerType == null) {
-            _snackbarMessage.value = "${context.getString(R.string.home_screen_error_codec_container)} $codec / $container"
+            _snackbarType.value = HomeScreenSnackbarType.VideoFileParseError(codec, container)
             return@withContext null
         }
 
@@ -147,7 +141,7 @@ class HomeScreenViewModel(private val application: Application) : AndroidViewMod
 
         val videoFormat = VideoFormat(
             codecContainerType = codecContainerType,
-            fileName = MediaTool.getFileName(context, uri),
+            fileName = mediaTool.getFileName(uri),
             videoHeight = videoHeight,
             videoWidth = videoWidth,
             bitRate = bitRate?.toIntOrNull() ?: 3_000_000,
