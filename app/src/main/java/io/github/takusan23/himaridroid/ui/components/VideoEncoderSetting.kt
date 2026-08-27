@@ -13,6 +13,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -159,17 +161,22 @@ private fun NumberInputField(
     suffix: String? = null,
     description: String? = null
 ) {
+    val numberText = remember { mutableStateOf(value.toString()) }
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            value = value.toString(),
-            onValueChange = { text ->
-                val number = text.toIntOrNull() ?: 0
-                onValueChange(number)
+            value = numberText.value,
+            singleLine = true,
+            onValueChange = {
+                numberText.value = it
+                it.toIntOrNull()?.also { int ->
+                    onValueChange(int)
+                }
             },
             label = { Text(text = label) },
             suffix = if (suffix != null) {
