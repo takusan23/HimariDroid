@@ -77,7 +77,7 @@ fun CodecSelectSheet(
     ).filter {
         // HDR のみの絞り込み
         if (isHdrOnly) {
-            it.codecContainerType.isAvailableHdr
+            it.codecContainerType.isAvailableHdrEncode
         } else {
             true
         }

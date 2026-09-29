@@ -56,7 +56,7 @@ object VideoProcessor {
                     encoderParams.codecContainerType == EncoderParams.CodecContainerType.DOLBY_VISION -> MediaFormat.MIMETYPE_VIDEO_HEVC
 
                     // HDR 動画を指定しているが、コーデックが対応していない場合も HEVC
-                    encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP && !encoderParams.codecContainerType.isAvailableHdr -> MediaFormat.MIMETYPE_VIDEO_HEVC
+                    encoderParams.tenBitHdrOptionOrNull?.mode == EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP && !encoderParams.codecContainerType.isAvailableHdrEncode -> MediaFormat.MIMETYPE_VIDEO_HEVC
 
                     // その他は大丈夫なはず
                     else -> encoderParams.codecContainerType.videoCodec
@@ -68,7 +68,8 @@ object VideoProcessor {
                     val colorProfile = when (encoderParams.codecContainerType) {
                         EncoderParams.CodecContainerType.AVC_AAC_MPEG4,
                         EncoderParams.CodecContainerType.VP9_OPUS_WEBM,
-                        EncoderParams.CodecContainerType.DOLBY_VISION -> null // 来ない
+                        EncoderParams.CodecContainerType.VP9_OPUS_MPEG4,
+                        EncoderParams.CodecContainerType.DOLBY_VISION -> null // これらのエンコードはしない
 
                         // HEVC
                         EncoderParams.CodecContainerType.HEVC_AAC_MPEG4 -> when (colorTransfer) {

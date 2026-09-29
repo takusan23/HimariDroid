@@ -29,6 +29,16 @@ data class EncoderParams(
         /** HEVC / AAC / mp4 */
         HEVC_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_HEVC, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4),
 
+        /**
+         * VP9 / Opus / mp4
+         * vp9 のコンテナフォーマットに webm 以外を選ぶやつおるんか・・・？
+         * https://en.wikipedia.org/wiki/Comparison_of_video_container_formats
+         *
+         * ただ Android の MediaMuxer では mp4 コンテナに vp9 を書き込むことは出来ない。そのためエンコードの選択肢には表示されない。デコード専用。
+         * https://cs.android.com/android/platform/superproject/+/android-latest-release:frameworks/av/media/libstagefright/MPEG4Writer.cpp;l=682
+         */
+        VP9_OPUS_MPEG4(MediaFormat.MIMETYPE_VIDEO_VP9, MediaFormat.MIMETYPE_AUDIO_OPUS, ContainerType.MPEG_4),
+
         /** AV1 / AAC / mp4 */
         AV1_AAC_MPEG4(MediaFormat.MIMETYPE_VIDEO_AV1, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4),
 
@@ -51,10 +61,11 @@ data class EncoderParams(
          */
         DOLBY_VISION(MediaFormat.MIMETYPE_VIDEO_HEVC, MediaFormat.MIMETYPE_AUDIO_AAC, ContainerType.MPEG_4);
 
-        /** HDR 動画に対応しているか */
-        val isAvailableHdr
+        /** HDR 動画のエンコードに対応しているか */
+        val isAvailableHdrEncode: Boolean
             get() = when (this) {
-                AVC_AAC_MPEG4, VP9_OPUS_WEBM -> false
+                // VP9 の HDR 動画はエンコーダーが起動しない、デコードは出来る
+                AVC_AAC_MPEG4, VP9_OPUS_MPEG4, VP9_OPUS_WEBM -> false
                 HEVC_AAC_MPEG4, AV1_AAC_MPEG4, AV1_OPUS_WEBM, DOLBY_VISION -> true // ただしドルビービジョンは HLG/PQ へフォールバックされる
             }
 

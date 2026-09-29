@@ -60,7 +60,12 @@ class HomeScreenViewModel(private val mediaTool: MediaTool) : ViewModel() {
             videoHeight = videoFormat.videoHeight,
             bitRate = videoFormat.bitRate,
             frameRate = videoFormat.frameRate,
-            codecContainerType = videoFormat.codecContainerType,
+            codecContainerType = if (videoFormat.tenBitHdrInfo != null && !videoFormat.codecContainerType.isAvailableHdrEncode) {
+                // VP9 だと HDR 動画がエンコードできないっぽい、HEVC にする
+                EncoderParams.CodecContainerType.HEVC_AAC_MPEG4
+            } else {
+                videoFormat.codecContainerType
+            },
             tenBitHdrOptionOrNull = if (videoFormat.tenBitHdrInfo != null) {
                 EncoderParams.TenBitHdrOption(
                     mode = EncoderParams.TenBitHdrOption.TenBitHdrMode.KEEP,
@@ -111,6 +116,7 @@ class HomeScreenViewModel(private val mediaTool: MediaTool) : ViewModel() {
             MIME_TYPE_MP4 -> when (codec) {
                 MediaFormat.MIMETYPE_VIDEO_AVC -> EncoderParams.CodecContainerType.AVC_AAC_MPEG4
                 MediaFormat.MIMETYPE_VIDEO_HEVC -> EncoderParams.CodecContainerType.HEVC_AAC_MPEG4
+                MediaFormat.MIMETYPE_VIDEO_VP9 -> EncoderParams.CodecContainerType.VP9_OPUS_MPEG4
                 MediaFormat.MIMETYPE_VIDEO_AV1 -> EncoderParams.CodecContainerType.AV1_AAC_MPEG4
                 MediaFormat.MIMETYPE_VIDEO_DOLBY_VISION -> EncoderParams.CodecContainerType.DOLBY_VISION
                 else -> null
