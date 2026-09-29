@@ -14,8 +14,8 @@ android {
         applicationId = "io.github.takusan23.himaridroid"
         minSdk = 34
         targetSdk = 37
-        versionCode = 10
-        versionName = "2.4.0"
+        versionCode = 11
+        versionName = "2.5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -26,7 +26,7 @@ android {
     buildTypes {
         release {
             optimization {
-                enable = false
+                enable = true
             }
         }
     }
